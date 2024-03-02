@@ -130,6 +130,8 @@ function displayStatistics(dates, numericData, headers, selectedColumn = null) {
             createLineGraph(dates, headers[0]);
         } else if (chartType === 'bar') {
             createBarChart(dates, headers[0]);
+        } else if (chartType == 'pie') {
+            createBarChart(dates, headers[0]);
         }
 
     }
