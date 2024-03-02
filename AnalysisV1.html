@@ -13,9 +13,10 @@
     <h2>Data Analysis Calculator</h2>
     <p>Please choose the data file you would like to analyze.</p>
     <input type="file" id="csv-file" accept=".csv">
-    <p>Please choose whether you want a line chart or a bar chart.</p>
+    <p>Please choose whether you want a line chart, bar chart, or pie chart.</p>
     <button onclick="selectChartType('line')">Line Chart</button>
     <button onclick="selectChartType('bar')">Bar Chart</button>
+    <button onclick="selectChartType('pie')">Pie Chart</button>
     <p>Please choose your column and generate the data analysis and charts.</p>
     <button onclick="selectColumn()">Select Column</button>
     <br></br>
@@ -23,6 +24,7 @@
     <br></br>
     <canvas id="lineChartCanvas" width="50" height="50"></canvas>
     <canvas id="barChartCanvas" width="50" height="50"></canvas>
+    <canvas id="pieChartCanvas" width="50" height="50"></canvas>
     
     
 </body>
