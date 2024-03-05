@@ -1,4 +1,5 @@
 document.getElementById('uploadButton').addEventListener('click', () => {
+    console.log('Button clicked');
     const fileInput = document.getElementById('csvFileInput');
     const file = fileInput.files[0];
     if (file) {
@@ -50,9 +51,32 @@ document.getElementById('uploadButton').addEventListener('click', () => {
     });
   }
   
+
   // Example function to filter data based on the selected column and input value
   document.getElementById('filterButton').addEventListener('click', () => {
-    // Implement filtering logic here
-    // You can access the selected column and input value to filter the table rows
+    const columnSelect = document.getElementById('columnSelect');
+    const queryInput = document.getElementById('queryInput');
+    const selectedColumnIndex = columnSelect.value;
+    const queryValue = queryInput.value.trim().toLowerCase(); // Case-insensitive comparison
+  
+    // Retrieve all table rows
+    const table = document.getElementById('csvTable');
+    const allRows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+  
+    // Convert HTMLCollection to array to use array methods
+    const rowsArray = Array.from(allRows);
+  
+    // Toggle row visibility based on the filter
+    rowsArray.forEach(row => {
+      const cells = row.getElementsByTagName('td');
+      if (cells.length > selectedColumnIndex) { // Check if the cell exists
+        const cellValue = cells[selectedColumnIndex].textContent.trim().toLowerCase();
+        if (cellValue.includes(queryValue)) {
+          row.style.display = ''; // Show row if it matches
+        } else {
+          row.style.display = 'none'; // Hide row if it does not match
+        }
+      }
+    });
   });
   
