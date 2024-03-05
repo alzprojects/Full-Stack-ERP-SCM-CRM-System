@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSV Viewer</title>
+<link rel="stylesheet" href="embedStyle.css">
+</head>
+<body>
+
+<input type="file" id="csvFileInput" accept=".csv">
+<button id="uploadButton">Upload CSV</button>
+<div id="queryControls">
+  <button id="filterButton">Filter Data</button>
+  <select id="columnSelect">
+    <!-- Options will be added based on the CSV columns -->
+  </select>
+  <input type="text" id="queryInput">
+</div>
+<table id="csvTable">
+  <!-- Table content will be generated based on the uploaded CSV -->
+</table>
+
+<script src="embedScript.js></script>
+</body>
+</html>
