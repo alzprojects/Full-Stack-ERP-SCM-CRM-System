@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SCM Micromanagement Central Yeehaw</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="SCM_Style.css">
+</head>
+<body>
+    <div class = "container">
+    <h2>Micromanagement Central Yeehaw</h2>
+    <div class="navbar">
+        <a href="homePage.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="ERP.html">ERP</a>
+        <a href="SCM.html">SCM</a>
+        <a href="CRM.html">CRM</a>
+    </div>
+    <br></br>
+    <p>Please choose the data file you would like to analyze.</p>
+    <div id ="smallContainer">
+        <div id="leftContainer">
+            <p>Data</p>
+            <input type="file" id="csvFileInput" accept=".csv">
+            <button id="uploadButton">Upload CSV</button>
+            <div id="queryControls">
+              <!--<button id="filterButton">Filter Data</button>-->
+              <select id="columnSelect"></select>
+              <!--<input type="text" id="queryInput">-->
+            </div>
+            <table id="csvTable"></table>
+        </div>
+        <div id="rightContainer">
+            <div id="topRightContainer">
+                <p>Plots & Figures</p>
+                <p>Please choose whether you want a line, bar, or pie chart.</p>
+                <!--
+                <button id ="lineChartButton" onclick="selectChartType('line')">Line Chart</button>
+                <button id ="barChartButton" onclick="selectChartType('bar')">Bar Chart</button>
+                <button id ="pieChartButton" onclick="selectChartType('pie')">Pie Chart</button>
+                -->
+                <button onclick = "firstAnalysis()">Analysis 1</button>
+                <canvas id="chartCanvas"></canvas>
+                <div id ="plotsContainer"></div>
+        
+            </div>
+            <div id="bottomRightContainer">
+                <p>Data Summary</p>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script src="SCM_Script.js"></script>
+</body>
+</html>

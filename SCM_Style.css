@@ -1,0 +1,90 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 700px;
+    height: 800px;
+    margin: 0 auto; 
+    padding: 20px; 
+    background-color: #e0f7fa; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+}
+
+h2 {
+    color: #333;
+}
+
+input[type="file"],
+button {
+    margin-bottom: 10px;
+}
+
+canvas {
+    margin-bottom: 20px;
+}
+.navbar {
+    overflow: hidden;
+    background-color: #181651;
+}
+
+.navbar a, .navbar .dropdown .dropbtn {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+}
+
+/* Change the color of links on hover */
+.navbar a:hover, .navbar .dropdown .dropbtn:hover {
+    background-color: #ddd;
+    color: black;
+}
+#smallContainer {
+    width: 100%;
+    display: flex;
+}
+
+#leftContainer {
+    width: 50%; /* Adjust as needed */
+    border: 1px solid black;
+    margin: 20px;
+}
+
+#rightContainer {
+    width: 50%; /* Adjust as needed */
+    display: flex;
+    flex-direction: column;
+    margin: 20px;
+
+}
+
+#topRightContainer, #bottomRightContainer {
+    flex: 1;
+    border: 1px solid black;
+    margin: 20px;
+    overflow-x: auto;
+    overflow-y: auto;
+
+}
+
+table {
+    width: 100%;
+    font-size: 6px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+  
+table, th, td {
+border: 1px solid black;
+}
+
+th, td {
+padding: 8px;
+text-align: left;
+}
