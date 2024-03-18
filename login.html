@@ -3,22 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login Page</title>
-<style>
-    .button-group {
-        display: flex;
-        justify-content: space-between;
-    }
-    .button-group button {
-        margin: 0 5px;
-    }
-</style>
+<link rel="stylesheet" href="style_login.css">
+<title>Micromanage Central</title>
 </head>
 <body>
 
-<div class="login-container">
+<div class="container">
+    <h2>Micromanagement Central Yeehaw</h2>
+    <div class="navbar">
+        <a href="homePage.html">Home</a>
+        <a href="login.html">Login</a>
+    </div>
+    <h2>Login</h2>
+    <p>Please enter your credentials.</p>
     <form action="login.php" method="post">
-        <h2>Login</h2>
         <div class="input-group">
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>
@@ -27,10 +25,9 @@
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
         </div>
-        <div class="button-group">
+        <div class="buttons">
             <button type="submit">Login</button>
-            <!-- Guest Login Button -->
-            <button type="button" onclick="location.href='guest_page.php'">Login as Guest</button>
+            <button type="button" onclick="location.href='guest_page.php'">Continue as Guest</button>
         </div>
     </form>
 </div>

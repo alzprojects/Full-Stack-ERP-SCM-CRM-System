@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micromanagement Central Yeehaw</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="ERP_Script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Micromanagement Central Yeehaw</h2>
+        <div class="navbar">
+            <a href="homePage.html">Home</a>
+            <a href="login.html">Login</a>
+            <a href="ERP.html">ERP</a>
+            <a href="SCM.html">SCM</a>
+            <a href="CRM.html">CRM</a>
+        </div>
+        <p>Please choose the data file you would like to analyze.</p>
+        <input type="file" id="csv-file" accept=".csv">
+        <p>Please choose whether you want a line, bar, or pie chart.</p>
+        <button id ="lineChartButton" onclick="selectChartType('line')">Line Chart</button>
+        <button id ="barChartButton" onclick="selectChartType('bar')">Bar Chart</button>
+        <button id ="pieChartButton" onclick="selectChartType('pie')">Pie Chart</button>
+        <p>Please choose your column and generate the data analysis and charts.</p>
+        <button onclick="selectColumn()">Select First Column</button>
+        <button onclick="selectColumnTwo()">Select Second Column</button>
+        <br></br>
+        <div id="contLeft">
+                <div id="statistics"></div>
+                <div id="tableContainer" >
+                    <table id ="tableTest">
+                        <tbody></tbody>
+                    </table>           
+                </div> 
+        </div>
+        <div id="contRight">
+            <canvas id="chartCanvas" ></canvas>
+            <div id="statisticsTwo"></div>
+            <canvas id="chartCanvasTwo" ></canvas>
+        </div>
+    </div>
+    
+</body>
+</html>
