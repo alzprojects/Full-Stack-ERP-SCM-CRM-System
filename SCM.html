@@ -16,11 +16,12 @@
         <a href="CRM.html">CRM</a>
     </div>
     <br></br>
-    <p>Please choose the data file you would like to analyze.</p>
     <div id ="smallContainer">
         <div id="leftContainer">
-            <p>Data</p>
+            <h3>Data</h3>
+            <p>Please choose the data file you would like to analyze.</p>
             <input type="file" id="csvFileInput" accept=".csv">
+            <br></br>
             <button id="uploadButton">Upload CSV</button>
             <div id="queryControls">
               <!--<button id="filterButton">Filter Data</button>-->
@@ -31,24 +32,18 @@
         </div>
         <div id="rightContainer">
             <div id="topRightContainer">
-                <p>Plots & Figures</p>
-                <p>Please choose whether you want a line, bar, or pie chart.</p>
-                <!--
-                <button id ="lineChartButton" onclick="selectChartType('line')">Line Chart</button>
-                <button id ="barChartButton" onclick="selectChartType('bar')">Bar Chart</button>
-                <button id ="pieChartButton" onclick="selectChartType('pie')">Pie Chart</button>
-                -->
-                <button onclick = "firstAnalysis()">Analysis 1</button>
+                <h3>Plots & Figures</h3>
                 <canvas id="chartCanvas"></canvas>
                 <div id ="plotsContainer"></div>
-        
             </div>
             <div id="bottomRightContainer">
-                <p>Data Summary</p>
+                <h3>Data Summary</h3>
             </div>
         </div>
     </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/split.js"></script>
     <script src="SCM_Script.js"></script>
+    
 </body>
 </html>
