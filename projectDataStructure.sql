@@ -7,15 +7,14 @@ CREATE TABLE locations (
 CREATE TABLE employees (
     employeeID INT PRIMARY KEY,
     name VARCHAR(255),
-    locationID INT,
-    FOREIGN KEY (locationID) REFERENCES locations(locationID)
+    locationID INT
 );
 
 CREATE TABLE inventory (
     inventoryID INT PRIMARY KEY,
     quantity INT,
     locationID INT,
-    FORIEGN KEY (location) REFERENCES location(locationID)
+    FOREIGN KEY (locationID) REFERENCES location(locationID)
 );
 
 CREATE TABLE product (
@@ -28,10 +27,10 @@ CREATE TABLE product (
 
 CREATE TABLE supplier (
     supplierID INT PRIMARY KEY,
-    name VARCHAR(255),
+    name VARCHAR(255)
 );
 
-CREATE TABLE order (
+CREATE TABLE `order` (
     orderID INT PRIMARY KEY,
     date DATE,
     supplierID INT,
@@ -43,12 +42,12 @@ CREATE TABLE orderDetail (
     orderID INT,
     productID INT,
     quantity INT,
-    FOREIGN KEY (orderID) REFERENCES order(orderID),
+    FOREIGN KEY (orderID) REFERENCES `order`(orderID),
     FOREIGN KEY (productID) REFERENCES product(productID)
 );
 
 CREATE TABLE customer (
-    customerID INT PRIMARY KEY,
+    customerID INT PRIMARY KEY
 );
 
 CREATE TABLE purchase (
