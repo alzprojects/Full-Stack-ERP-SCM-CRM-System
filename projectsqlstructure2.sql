@@ -39,6 +39,8 @@ CREATE TABLE `order` (
 -- Customer
 CREATE TABLE customer (
     customerID INT PRIMARY KEY
+    Name VARCHAR(255)
+    PhoneNum INT
 );
 
 -- Purchase
