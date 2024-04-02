@@ -1,3 +1,8 @@
+
+
+
+
+### Q2
 CREATE TABLE Vehicle (
     VIN VARCHAR(17) PRIMARY KEY,
     Date DATE,
