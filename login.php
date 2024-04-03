@@ -2,11 +2,16 @@
 // Database configuration
 $host = 'localhost';
 $dbname = 'DATABASENAME';
-$username = 'your_database_username';
-$password = 'your_database_password';
+$username = 'database_username';
+$password = 'database_password';
 
 //connect to database
-$conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+$conn = new mysqli($servername, $username, $password);
+
+// Select the specific database
+if (!$conn->select_db($database)) {
+    die("Database selection failed: " . $conn->error);
+}
 
 // Check if email and password are set
 if (isset($_POST['email']) && isset($_POST['password'])) {
