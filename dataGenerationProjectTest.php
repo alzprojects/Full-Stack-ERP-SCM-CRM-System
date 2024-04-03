@@ -265,11 +265,43 @@ function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 
     $stmt->close();
 }
 
+function getForeignKeys($dbname, $conn, $table_name) {
+    $sql = "SELECT 
+        k.COLUMN_NAME, 
+        k.REFERENCED_TABLE_NAME 
+    FROM 
+        information_schema.KEY_COLUMN_USAGE k 
+    WHERE 
+        k.TABLE_SCHEMA = '$dbname' 
+        AND k.REFERENCED_TABLE_SCHEMA IS NOT NULL 
+        AND k.TABLE_NAME = '$table_name'";
+
+    $result = $conn->query($sql);
+
+    $foreignKeysInfo = [];
+
+    if ($result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $foreignKeysInfo[$row["COLUMN_NAME"]] = $row["REFERENCED_TABLE_NAME"];
+        }
+    } else {
+        echo "0 results";
+    }
+    return $foreignKeysInfo;
+}
+
 
 //insertRandomProducts($conn, 10, $database);
 //insertRandomPurchase($conn, 10, $database, '2020-01-01', '2020-12-31');
 //insertRandomPurchaseDetail($conn, 10, $database);
-insertBaseTableData(10, '2020-01-01', '2020-12-31', $conn, $database, 'product');
-//Close the connection
+//insertBaseTableData(10, '2020-01-01', '2020-12-31', $conn, $database, 'product');
+
+$foreignKeysInfo = array();
+$foreignKeysInfo = getForeignKeys('azimbali', $conn, 'purchaseDetail');
+foreach ($foreignKeysInfo as $columnName => $referencedTableName) {
+    echo "Column: $columnName, Referenced Table: $referencedTableName\n";
+}
+
+
 mysqli_close($conn);
 ?>
