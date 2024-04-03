@@ -1,10 +1,10 @@
 <?php
 $servername = "mydb.itap.purdue.edu";
 $username = "azimbali";
-$password = "password";
+$password = "Max!024902!!";
 $database = "azimbali";
 
-$conn = new mysqli($servername, $username, $password);
+$conn = new mysqli($servername, $username, $password, $database);
 
 // Check connection was successful, otherwise immediately exit the script
 if ($conn->connect_error) {
@@ -176,29 +176,100 @@ function getRandomProductId($conn, array $usedIds, $database) {
     return null;
 }
 
-function getTableColumnNames($conn, $database, $table) {
-    $query = "SELECT COLUMN_NAME 
+function getTableColumnDetails($conn, $database, $table) {
+    $query = "SELECT COLUMN_NAME, DATA_TYPE 
               FROM INFORMATION_SCHEMA.COLUMNS 
               WHERE TABLE_SCHEMA = '$database' 
               AND TABLE_NAME = '$table'";
 
     $result = $conn->query($query);
+    $columnDetails = array();
 
+    // Check if the query was successful and returned rows
     if ($result && $result->num_rows > 0) {
+        // Fetch each row and add the column name and data type to the associative array
         while ($row = $result->fetch_assoc()) {
-            echo "Column Name: " . $row['COLUMN_NAME'] . "\n";
+            echo "Row: " . $row['COLUMN_NAME'] . "\n";
+            echo "Row: " . $row['DATA_TYPE'] . "\n";
+            $columnDetails[$row['COLUMN_NAME']] = $row['DATA_TYPE'];
         }
-    } else {
+        echo "getTableColumnDetails completed \r\n";
+        return $columnDetails; 
+        } 
+        else 
+        {
         echo "No columns found for table '$table' in database '$database'.\n";
+        return false; // Return false if no columns are found
     }
+}
+
+function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, $table) {
+    $columnDetails = getTableColumnDetails($conn, $database, $table);
+    $columnNames = array_keys($columnDetails);
+    $usedIDs = array();
+    // Begin preparing the SQL statement
+    $columnsString = implode(", ", $columnNames);
+    $valuesPlaceholder = implode(", ", array_fill(0, count($columnNames), "?"));
+    $sql = "INSERT INTO $table ($columnsString) VALUES ($valuesPlaceholder)";
+
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        echo "Error preparing statement: " . $conn->error;
+        return;
+    }
+    $usedIDs = array();
+    // Insert data
+    for ($j = 0; $j < $quantity; $j++) {
+        $bindTypes = ''; // String to hold bind types
+        $values = []; // Array to hold the values for binding
+        $bindParams = []; // Array to hold references for binding
+    
+        foreach ($columnDetails as $columnName => $dataType) {
+            switch ($dataType) {
+                case 'int':
+                    $value = generateRandomInt($usedIDs); // Assume this function generates a random integer
+                    $bindTypes .= 'i';
+                    array_push($usedIDs, $value);
+                    break;
+                case 'decimal':
+                    $value = generateRandomDecimal(); // Assume this function generates a random decimal
+                    $bindTypes .= 'd';
+                    break;
+                case 'varchar':
+                    $value = generateRandomString(rand(5, 10)); // Assume this function generates a random string
+                    $bindTypes .= 's';
+                    break;
+                default:
+                    // Handle other data types or throw an error
+                    echo "Unsupported data type: $dataType";
+                    return;
+            }
+            $values[] = $value;
+        }
+    
+        // Prepare the parameters for binding
+        $bindParams[] = & $bindTypes;
+        foreach ($values as $key => $value) {
+            $bindParams[] = & $values[$key]; // Bind each value by reference
+        }
+    
+        // Call bind_param with a dynamic number of parameters
+        call_user_func_array([$stmt, 'bind_param'], $bindParams);
+    
+        // Execute the statement
+        if (!$stmt->execute()) {
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+    }
+    
+    $stmt->close();
 }
 
 
 //insertRandomProducts($conn, 10, $database);
 //insertRandomPurchase($conn, 10, $database, '2020-01-01', '2020-12-31');
 //insertRandomPurchaseDetail($conn, 10, $database);
-getTableColumnNames($conn, $database, 'product');
-
+insertBaseTableData(10, '2020-01-01', '2020-12-31', $conn, $database, 'product');
 //Close the connection
 mysqli_close($conn);
 ?>
