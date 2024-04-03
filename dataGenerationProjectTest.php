@@ -176,9 +176,28 @@ function getRandomProductId($conn, array $usedIds, $database) {
     return null;
 }
 
+function getTableColumnNames($conn, $database, $table) {
+    $query = "SELECT COLUMN_NAME 
+              FROM INFORMATION_SCHEMA.COLUMNS 
+              WHERE TABLE_SCHEMA = '$database' 
+              AND TABLE_NAME = '$table'";
+
+    $result = $conn->query($query);
+
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            echo "Column Name: " . $row['COLUMN_NAME'] . "\n";
+        }
+    } else {
+        echo "No columns found for table '$table' in database '$database'.\n";
+    }
+}
+
+
 //insertRandomProducts($conn, 10, $database);
 //insertRandomPurchase($conn, 10, $database, '2020-01-01', '2020-12-31');
-insertRandomPurchaseDetail($conn, 10, $database);
+//insertRandomPurchaseDetail($conn, 10, $database);
+getTableColumnNames($conn, $database, 'product');
 
 //Close the connection
 mysqli_close($conn);
