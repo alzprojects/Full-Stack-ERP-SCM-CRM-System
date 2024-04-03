@@ -8,6 +8,11 @@ $password = 'database_password';
 //connect to database
 $conn = new mysqli($servername, $username, $password);
 
+// Check connection was successful, otherwise immediately exit the script
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
 // Select the specific database
 if (!$conn->select_db($database)) {
     die("Database selection failed: " . $conn->error);
