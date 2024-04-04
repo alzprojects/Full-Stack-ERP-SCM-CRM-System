@@ -29,7 +29,7 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
 
     // Verify the password and check user role
     if ($user && password_verify($password, $user['password'])) {
-        if ($user['role'] == 'back_office') {
+        if ($user['role'] == 'backOffice') {
             header('Location: back_office_page.php'); // Redirect to back office page
         } elseif ($user['role'] == 'store') {
             header('Location: store_user_page.php'); // Redirect to store user page
