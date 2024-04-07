@@ -219,16 +219,6 @@ function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 
     }
     $usedIDs = array();
     // Insert data
-    for ($j = 0; $j < $quantity; $j++) {
-        $bindTypes = ''; // String to hold bind types
-        $values = []; // Array to hold the values for binding
-        $bindParams = []; // Array to hold references for binding
-    
-        foreach ($columnDetails as $columnName => $dataType) {
-            switch ($dataType) {
-                case 'int':
-                    $value = generateRandomInt($usedIDs); // Assume this function generates a random integer
-                    $bindTypes .= 'i';
                     array_push($usedIDs, $value);
                     break;
                 case 'decimal':
