@@ -30,8 +30,8 @@ CREATE TABLE supplier (
 
 CREATE TABLE `order` (
     orderID INT PRIMARY KEY,
-    orderDate DATE NOT NULL,
-    deliveryDate DATE,
+    orderDate VARCHAR(255) NOT NULL,
+    deliveryDate VARCHAR(255),
     orderCost DECIMAL(10, 2) NOT NULL,
     supplierID INT,
     FOREIGN KEY (supplierID) references supplier(supplierID)
@@ -40,7 +40,7 @@ CREATE TABLE `order` (
 
 CREATE TABLE purchase (
     purchaseID INT PRIMARY KEY,
-    `date` DATE NOT NULL,
+    `date` VARCHAR(255) NOT NULL,
     customerID INT,
     locationID INT,
     satisfactionRating ENUM('Satisfied', 'Ok', 'Bad'),
@@ -51,8 +51,8 @@ CREATE TABLE purchase (
 
 CREATE TABLE users (
     userID INT PRIMARY KEY,
-    start_date DATE NOT NULL,
-    end_date DATE,
+    start_date VARCHAR(255),
+    end_date VARCHAR(255),
     username VARCHAR(100),
     password INT UNIQUE,
     user_type ENUM('employee', 'supplier', 'customer') NOT NULL
