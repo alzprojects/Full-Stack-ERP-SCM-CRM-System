@@ -301,10 +301,97 @@ function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 
         if (!$stmt->execute()) {
             echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
         }
+        else {
+            if ($table == 'customers' || $table == 'supplier') {
+                createEnumTables($table, $conn, $bindParams[1], $database);
+            }
+            if ($table == 'customers') {
+                insertPurchaseData($conn, $bindParams[1], rand(1,10), $startDate, $endDate);
+            }
+        }
+    }        
+        $stmt->close();
+}
+
+
+function createEnumTables($table, $conn, $id, $database = 'azimbali') {
+    $sql = "SELECT user_id FROM enumCustomer UNION ALL SELECT user_id FROM enumSupplier";
+    $result = mysqli_query($conn, $sql);
+    if ($result) {
+        // Fetch all user ids into an array
+        $userIds = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    }
+    else {
+            echo "Error: " . $sql . "<br>" . mysqli_error($connection);
     }
     
+    $tableName = ($table == 'customers') ? 'enumCustomer' : 'enumSupplier';
+    $fk = ($table == 'customers') ? 'customerID' : 'supplierID';
+    $user_id = generateRandomInt($userIds);
+    echo "User ID: $user_id\n";
+
+    $stmt = $conn->prepare("INSERT INTO $database.$tableName (user_id, $fk) VALUES (?, ?)");
+    $stmt->bind_param("ii", $user_id, $id);
+    $stmt->execute();
     $stmt->close();
 }
+
+function insertPurchaseData($conn, $customerID, $quantity, $startDate, $endDate) {
+    $purchaseIDs = array();
+    for ($i = 1; $i <= $quantity; $i++) {
+        $purchaseID = generateRandomInt($purchaseIDs);
+        if ($purchaseID === NULL) {
+            echo "Failed to generate unique purchase ID after 10000 attempts.\n";
+            exit;
+        }
+        else {
+            array_push($purchaseIDs, $purchaseID);
+        }
+        $purchaseDate = generateRandomDate($startDate, $endDate);
+        $locationID = getRandomID($conn, 'locations', 'locationID');
+        $satisfactionRating = getRandomEnumValue($conn, 'purchase', 'satisfactionRating');
+        $stmt = $conn->prepare("INSERT INTO purchase (purchaseID, date, customerID, locationID, satisfactionRating) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("isiis", $purchaseID, $purchaseDate, $customerID, $locationID, $satisfactionRating);
+
+        // Execute the statement
+        if ($stmt->execute()) {
+            echo "New record created successfully for purchaseID: $purchaseID\n\n";
+        } else {
+            echo "Error: " . $stmt->error . "\n\n";
+        }
+
+        // Close the statement
+        $stmt->close();
+    }
+}
+
+function getRandomID($conn, $table, $column) {
+    try {
+        // Prepare the SQL statement to fetch a random locationID from the locations table
+        $sql = "SELECT $column FROM $table ORDER BY RAND() LIMIT 1";
+        $stmt = $conn->prepare($sql);
+        
+        // Execute the statement
+        $stmt->execute();
+        
+        // Get the result set from the statement
+        $result = $stmt->get_result();
+        
+        // Fetch the row that contains the random locationID
+        if ($row = $result->fetch_assoc()) {
+            // Return the random locationID
+            return $row[$column];
+        } else {
+            // If no rows were found, throw an exception
+            throw new Exception("No locations found.");
+        }
+    } catch (Exception $e) {
+        // Handle any errors, such as table not found or database connection issues
+        echo "An error occurred: " . $e->getMessage();
+        return null; // Or handle this case as needed
+    }
+}
+
 
 function getForeignKeys($dbname, $conn, $table_name) {
     $sql = "SELECT 
@@ -345,13 +432,12 @@ foreach ($foreignKeysInfo as $columnName => $referencedTableName) {
 $quantity = 10;
 $startDate = '2020-01-01';
 $endDate = '2020-12-31';
-#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
+insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
 #insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'employees'); 
-#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'locations'); 
+# insertBaseTableData(3, $startDate, $endDate, $conn, $database, 'locations'); 
 #insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'order'); 
 #insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
-#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'purchase'); 
-#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
+# insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
 #insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'users'); 
 
 
