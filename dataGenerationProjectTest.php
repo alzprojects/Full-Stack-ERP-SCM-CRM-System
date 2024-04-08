@@ -144,6 +144,7 @@ function insertRandomPurchaseDetail($conn, $quantity, $database) {
     }
 }
 
+
 function getPurchaseID($conn, $database) {
     $query = "SELECT purchaseID FROM $database.purchase ORDER BY RAND() LIMIT 1";
     $result = $conn->query($query);
@@ -174,6 +175,34 @@ function getRandomProductId($conn, array $usedIds, $database) {
         return $row['productID'];
     }
     return null;
+}
+
+function getRandomEnumValue($conn, $tableName, $columnName) {
+    try {
+        // Prepare the SQL statement to fetch the column type
+        $sql = "SHOW COLUMNS FROM `$tableName` WHERE Field = ?";
+        $stmt = $conn->prepare($sql);
+        // Bind the $columnName variable as a string to the statement
+        mysqli_stmt_bind_param($stmt, "s", $columnName); // 's' denotes the type of the variable, a string in this case
+        $stmt->execute();
+        $result = $stmt->get_result(); // Get the result set from the statement
+        if ($row = $result->fetch_assoc()) {
+            // Extract the enum's permissible values
+            $type = $row['Type'];
+            preg_match("/^enum\(\'(.*)\'\)$/", $type, $matches);
+            $enumValues = explode("','", $matches[1]);
+
+            // Select a random value from the enum options
+            $randomKey = array_rand($enumValues);
+            return $enumValues[$randomKey];
+        }
+        
+        throw new Exception("Column not found or is not an enum type.");
+    } catch (Exception $e) {
+        // Handle any errors, such as column not found or database connection issues
+        echo "An error occurred: " . $e->getMessage();
+        return null; // Or handle this case as needed
+    }
 }
 
 function getTableColumnDetails($conn, $database, $table) {
@@ -245,7 +274,11 @@ function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 
                     break;
                 case `boolean`:
                     $value =  rand(0,1) == 1;
-                    $bindTypes .= 'b';
+                    $bindTypes .= 'i';
+                    break;
+                case 'enum':
+                    $value = getRandomEnumValue($conn, $table, $columnName); 
+                    $bindTypes .= 's';
                     break;
                 default:
                     // Handle other data types or throw an error
@@ -303,23 +336,23 @@ function getForeignKeys($dbname, $conn, $table_name) {
 //insertRandomPurchase($conn, 10, $database, '2020-01-01', '2020-12-31');
 //insertRandomPurchaseDetail($conn, 10, $database);
 //insertBaseTableData(10, '2020-01-01', '2020-12-31', $conn, $database, 'product');
-
+/*
 $foreignKeysInfo = array();
 $foreignKeysInfo = getForeignKeys('azimbali', $conn, 'purchaseDetail');
 foreach ($foreignKeysInfo as $columnName => $referencedTableName) {
     echo "Column: $columnName, Referenced Table: $referencedTableName\n";
-}
+}*/
 $quantity = 10;
 $startDate = '2020-01-01';
 $endDate = '2020-12-31';
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'employees'); 
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'locations'); 
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'order'); 
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'purchase'); 
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'users'); 
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'employees'); 
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'locations'); 
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'order'); 
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'purchase'); 
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'users'); 
 
 
 mysqli_close($conn);
