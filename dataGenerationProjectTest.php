@@ -308,6 +308,9 @@ function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 
             if ($table == 'customers') {
                 insertPurchaseData($conn, $bindParams[1], rand(1,10), $startDate, $endDate);
             }
+            if ($table == 'supplier') {
+                insertOrderData($conn, $bindParams[1], rand(1,10), $startDate, $endDate);
+            }
         }
     }        
         $stmt->close();
@@ -334,7 +337,102 @@ function createEnumTables($table, $conn, $id, $database = 'azimbali') {
     $stmt->bind_param("ii", $user_id, $id);
     $stmt->execute();
     $stmt->close();
+    insertUserData($conn, $user_id, $tableName, $table);
 }
+
+function insertOrderData ($conn, $supplierID, $quantity, $startDate, $endDate) {
+    $orderIDs = array();
+    for ($i = 1; $i <= $quantity; $i++) {
+        $orderID = generateRandomInt($orderIDs);
+        if ($orderID === NULL) {
+            echo "Failed to generate unique order ID after 10000 attempts.\n";
+            exit;
+        }
+        else {
+            array_push($orderIDs, $orderID);
+        }
+        $orderDate = generateRandomDate($startDate, $endDate);
+        $deliveryDate = generateRandomDate($startDate, $endDate);
+        if ($deliveryDate < $orderDate) {
+            $temp = $orderDate;
+            $orderDate = $deliveryDate;
+            $deliveryDate = $temp;
+        }
+        $orderCost = generateRandomDecimal();
+        $stmt = $conn->prepare("INSERT INTO `order` (orderID, orderDate, deliveryDate, orderCost, supplierID) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("issdi", $orderID, $orderDate, $deliveryDate, $orderCost, $supplierID);
+
+        // Execute the statement
+        if ($stmt->execute()) {
+            echo "New record created successfully for orderID: $orderID\n\n";
+        } else {
+            echo "Error: " . $stmt->error . "\n\n";
+        }
+
+        // Close the statement
+        $stmt->close();
+    }
+    insertOrderDetailData($conn, $bindParams[1], $startDate, $endDate);
+}
+/*
+insertOrderDetailData($conn, $orderIDs, $startDate, $endDate) {
+    $orderDetailIDs = array();
+    for ($i = 1; $i <= rand(1,10); $i++) {
+        $productID = getRandomID($conn, 'product', 'productID');
+        $inventoryDetailID = getRandomID($conn, 'inventoryDetail', 'inventoryDetailID');
+        $orderDetailIDs = generateRandomInt($orderDetailIDs);
+        array_push($orderDetailIDs, $orderDetailID);
+        $quantity = generateRandomInt();
+        $stmt = $conn->prepare("INSERT INTO orderDetail (orderDetailID, orderID, productID, inventoryDetailID, quantity) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("iiiii", $orderDetailID, $orderID, $productID, $inventoryDetailID, $quantity);
+        
+        if ($stmt->execute()) {
+            echo "New record created successfully for orderDetailID: $orderDetailID\n\n";
+        } else {
+            echo "Error: " . $stmt->error . "\n\n";
+        }
+        $stmt->close();
+    }    
+}*/
+
+function getEarliestDate($conn, $id, $table) {
+    if ($table == 'supplier') {
+        $sql = "SELECT MIN(orderDate) AS earliestOrderDate
+        FROM `order`
+        WHERE supplierID = $id;
+        ";
+    }
+    else {
+        $sql = "SELECT MIN(`date`) AS earliestOrderDate
+        FROM purchase
+        WHERE customerID = $id;
+        ";
+    }
+    $result = $conn->query($sql);
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        echo "Earliest Order Date: " . $row['earliestOrderDate'];
+        return $row['earliestOrderDate'];
+    }
+    return NULL;
+}
+
+function insertUserData($conn, $userID, $enumType, $table ) {
+    $username = generateRandomString(rand(5, 10));
+    $password = generateRandomString(rand(5, 10));
+    $user_type = $enumType;
+    $startDate = getEarliestDate($conn, $userID, $table);
+    $endDate = NULL;
+    $stmt = $conn->prepare("INSERT INTO users (userID,startDate, endDate username, password, user_type) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("issss", $userID, $startDate, $endDate, $username, $password, $user_type);
+    if ($stmt->execute()) {
+        echo "New record created successfully for userID: $userID\n\n";
+    } else {
+        echo "Error: " . $stmt->error . "\n\n";
+    }
+    $stmt->close();
+}
+
 
 function insertPurchaseData($conn, $customerID, $quantity, $startDate, $endDate) {
     $purchaseIDs = array();
@@ -432,13 +530,16 @@ foreach ($foreignKeysInfo as $columnName => $referencedTableName) {
 $quantity = 10;
 $startDate = '2020-01-01';
 $endDate = '2020-12-31';
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
 #insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'employees'); 
-# insertBaseTableData(3, $startDate, $endDate, $conn, $database, 'locations'); 
+#insertBaseTableData(3, $startDate, $endDate, $conn, $database, 'locations'); 
 #insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'order'); 
 #insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
-# insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
 #insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'users'); 
+$customerID = 340;
+$table = `customers`;
+getEarliestDate($conn, $customerID, $table);
 
 
 mysqli_close($conn);
