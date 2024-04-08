@@ -219,15 +219,33 @@ function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 
     }
     $usedIDs = array();
     // Insert data
+    for ($j = 0; $j < $quantity; $j++) {
+        $bindTypes = ''; // String to hold bind types
+        $values = []; // Array to hold the values for binding
+        $bindParams = []; // Array to hold references for binding
+    
+        foreach ($columnDetails as $columnName => $dataType) {
+            switch ($dataType) {
+                case 'int':
+                    $value = generateRandomInt($usedIDs); 
+                    $bindTypes .= 'i';
                     array_push($usedIDs, $value);
                     break;
                 case 'decimal':
-                    $value = generateRandomDecimal(); // Assume this function generates a random decimal
+                    $value = generateRandomDecimal();
                     $bindTypes .= 'd';
                     break;
                 case 'varchar':
-                    $value = generateRandomString(rand(5, 10)); // Assume this function generates a random string
+                    $value = generateRandomString(rand(5, 10)); 
                     $bindTypes .= 's';
+                    break;
+                case 'date':
+                    $value = generateRandomDate($startDate, $endDate);
+                    $bindTypes .= 's';
+                    break;
+                case `boolean`:
+                    $value =  rand(0,1) == 1;
+                    $bindTypes .= 'b';
                     break;
                 default:
                     // Handle other data types or throw an error
@@ -291,6 +309,17 @@ $foreignKeysInfo = getForeignKeys('azimbali', $conn, 'purchaseDetail');
 foreach ($foreignKeysInfo as $columnName => $referencedTableName) {
     echo "Column: $columnName, Referenced Table: $referencedTableName\n";
 }
+$quantity = 10;
+$startDate = '2020-01-01';
+$endDate = '2020-12-31';
+insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
+insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'employees'); 
+insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'locations'); 
+insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'order'); 
+insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
+insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'purchase'); 
+insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
+insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'users'); 
 
 
 mysqli_close($conn);
