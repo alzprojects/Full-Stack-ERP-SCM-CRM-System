@@ -59,8 +59,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE employees (
-    employee_id INT PRIMARY KEY NOT NULL,
-    userID INT UNIQUE,
+    userID INT PRIMARY KEY NOT NULL,
     CRMAccess BOOLEAN,
     SCMAccess BOOLEAN,
     ERPAccess BOOLEAN,
@@ -70,13 +69,13 @@ CREATE TABLE employees (
 );
 
 CREATE TABLE enumSupplier (
-    user_id INT UNIQUE PRIMARY KEY,
+    userID INT UNIQUE PRIMARY KEY,
     supplierID INT NOT NULL,
     FOREIGN KEY (supplierID) REFERENCES supplier(supplierID)
 );
 
 CREATE TABLE enumCustomer (
-    user_id INT UNIQUE PRIMARY KEY,
+    userID INT UNIQUE PRIMARY KEY,
     customerID INT NOT NULL,
     FOREIGN KEY (customerID) REFERENCES customers(customerID)
 );
