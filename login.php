@@ -1,46 +1,91 @@
 <?php
 // Database configuration
-$host = 'localhost';
-$dbname = 'DATABASENAME';
-$username = 'database_username';
-$password = 'database_password';
+
+$db_host = 'localhost';
+$db_user = 'root';
+$db_password = 'root';
+$db_db = 'seif';
 
 //connect to database
-$conn = new mysqli($servername, $username, $password);
+$conn = new PDO("mysql:host=$db_host;dbname=$db_db",$db_user,$db_password);
 
 // Check connection was successful, otherwise immediately exit the script
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-// Select the specific database
-if (!$conn->select_db($database)) {
-    die("Database selection failed: " . $conn->error);
+if (!$conn) 
+{
+	die("Connection failed: " . $conn->connect_error);
 }
 
 // Check if email and password are set
-if (isset($_POST['email']) && isset($_POST['password'])) {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+if (isset($_POST['email']) && isset($_POST['password'])) 
+{
+    	$email = $_POST['email'];
+    	$password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT email, password, role FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // Verify the password and check user role
-    if ($user && password_verify($password, $user['password'])) {
-        if ($user['role'] == 'backOffice') {
-            header('Location: back_office_page.php'); // Redirect to back office page
-        } elseif ($user['role'] == 'store') {
-            header('Location: store_user_page.php'); // Redirect to store user page
-        } else {
-            // Handle unknown role
-            echo "Unauthorized access.";
-        }
-    } else {
-        echo "Invalid credentials.";
-    }
-} else {
-    echo "Please fill in all fields.";
+	$query = "SELECT user_id, email, password, role FROM users WHERE email = '$email' AND password = '$password'";
+	$statement = $conn->prepare($query);
+	$statement->execute();
+	$result = $statement->fetchAll();
+	$no=$statement->rowCount();
+	if($no==0)
+	{
+            	?><script>alert("Unauthorized access.")</script><?php
+	}else{
+		foreach($result as $row)
+		{
+			$user_id = $row['user_id'];
+        		if ($row['role'] == 'customer') 
+			{
+				// Redirect to back office page
+            			//header('Location: back_office_page.php'); 
+            			?><script>alert("alex")</script><?php
+        		} elseif ($row['role'] == 'supplier') {
+				// Redirect to store user page
+            			//header('Location: store_user_page.php'); 
+            			?><script>alert("seif")</script><?php
+        		} elseif ($row['role'] == 'employee') {
+				// Redirect to store user page
+            			header('Location: employee_page.php?userId='.$user_id); 
+        		}
+		}
+	}
 }
-?>
+?><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Page</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+</head>
+<body><?php
+$email = '';
+if(isset($_POST['email']))
+{
+	$email = $_POST['email'];	
+}
+$password = '';
+if(isset($_POST['password']))
+{
+	$password = $_POST['password'];		
+}
+?><div class="container">
+    <form action="login.php" method="post">
+        <h2>Login</h2>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" class="form-control" value="<?php echo $email; ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" class="form-control" value="<?php echo $password; ?>" required>
+        </div>
+	<div class="form-group" class="col-md-12">        
+            <button type="submit" class="btn btn-success btn-block"><b>Login</b></button>
+            <!-- Guest Login Button -->
+            <button type="button" class="btn btn-primary btn-block" onclick="location.href='index.html'"><b>Login as Guest</b></button> 
+	</div>
+    </form>
+</div>
+
+</body>
+</html>
