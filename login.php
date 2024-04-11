@@ -49,26 +49,34 @@ if (isset($_POST['email']) && isset($_POST['password']))
 		}
 	}
 }
-?><!DOCTYPE html>
+?>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login Page</title>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<style>
+    /* This CSS styles the logo container */
+    .logo-container {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 10px;
+    }
+</style>
 </head>
-<body><?php
-$email = '';
-if(isset($_POST['email']))
-{
-	$email = $_POST['email'];	
-}
-$password = '';
-if(isset($_POST['password']))
-{
-	$password = $_POST['password'];		
-}
-?><div class="container">
+<body>
+
+<!-- Logo Container -->
+<div class="logo-container">
+    <img src="logo.png" alt="Website Logo" style="width: 100px;"> <!-- Adjust the width as needed -->
+</div>
+
+<!-- Your existing form and content here -->
+<div class="container">
     <form action="login.php" method="post">
         <h2>Login</h2>
         <div class="form-group">
@@ -79,13 +87,14 @@ if(isset($_POST['password']))
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" class="form-control" value="<?php echo $password; ?>" required>
         </div>
-	<div class="form-group" class="col-md-12">        
+    <div class="form-group" class="col-md-12">        
             <button type="submit" class="btn btn-success btn-block"><b>Login</b></button>
             <!-- Guest Login Button -->
             <button type="button" class="btn btn-primary btn-block" onclick="location.href='index.html'"><b>Login as Guest</b></button> 
-	</div>
+    </div>
     </form>
 </div>
 
 </body>
 </html>
+
