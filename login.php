@@ -35,16 +35,14 @@ if (isset($_POST['email']) && isset($_POST['password']))
 			$user_id = $row['user_id'];
         		if ($row['role'] == 'customer') 
 			{
-				// Redirect to back office page
-            			//header('Location: back_office_page.php'); 
-            			?><script>alert("alex")</script><?php
+				// Redirect to customers page
+                header('Location: customers_page.php?userId='.$user_id); 
         		} elseif ($row['role'] == 'supplier') {
-				// Redirect to store user page
-            			//header('Location: store_user_page.php'); 
-            			?><script>alert("seif")</script><?php
+				// Redirect to suppliers  page
+                header('Location: suppliers_page.php?userId='.$user_id); 
         		} elseif ($row['role'] == 'employee') {
-				// Redirect to store user page
-            			header('Location: employee_page.php?userId='.$user_id); 
+				// Redirect to employee user page
+            	header('Location: employee_page.php?userId='.$user_id); 
         		}
 		}
 	}
@@ -59,7 +57,6 @@ if (isset($_POST['email']) && isset($_POST['password']))
 <title>Login Page</title>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 <style>
-    /* This CSS styles the logo container */
     .logo-container {
         position: absolute;
         top: 0;
@@ -75,7 +72,7 @@ if (isset($_POST['email']) && isset($_POST['password']))
     <img src="logo.png" alt="Website Logo" style="width: 100px;"> <!-- Adjust the width as needed -->
 </div>
 
-<!-- Your existing form and content here -->
+
 <div class="container">
     <form action="login.php" method="post">
         <h2>Login</h2>
