@@ -17,7 +17,7 @@ echo <<<EOT
         <div class="navbar">
             <a href="homePage.html">Home</a>
             <a href="login.html">Login</a>
-            <a href="ERP.php">ERP</a>
+            <a href="erpYeehaw.php">ERP</a>
             <a href="SCM.html">SCM</a>
             <a href="CRM.html">CRM</a>  
         </div>
