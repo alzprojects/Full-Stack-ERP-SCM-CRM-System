@@ -17,7 +17,7 @@ echo <<<EOT
         <div class="navbar">
             <a href="homePage.html">Home</a>
             <a href="login.html">Login</a>
-            <a href="erpYeehaw.php">ERP</a>
+            <a href="ERP.php">ERP</a>
             <a href="SCM.html">SCM</a>
             <a href="CRM.html">CRM</a>  
         </div>
@@ -26,7 +26,13 @@ echo <<<EOT
                 <div id="leftContainer">
                     <h3>Data</h3>
                     <p>we can put literally any table here, we had talked about being able to choose cols etc but thats a premium feature as of rn</p>
-                    <table id="csvTable"></table>
+                    <form method="post" >
+                            <label for="artist_id">Enter Artist ID:</label>
+                            <input type="number" id="artist_id" name="artist_id" required>
+                            <button type="submit">Submit</button>
+                        </form>
+                    <table id="artistTable"></table>
+                    
                 </div>
                 <div id="rightContainer">
                     <div id="topRightContainer">
@@ -44,13 +50,15 @@ echo <<<EOT
                         <h3>Data Summary</h3>
                         <p>just a table for chart3, can be adjusted to anything this was more for testing</p>
                         <table id="testTable"></table>
-                        <p>we can change these to be any data summaries/ calcs, ex: calc yealry earnings, most profitable item, etc</p>
+                        <p>we can change these to be any data summaries/ calcs, ex: calc yearly earnings, most profitable item, etc</p>
                         <button onclick="calculateAverage()">Calculate Average</button>
                         <button onclick="calculateMin()">Calculate Minimum</button>
                         <button onclick="calculateMax()">Calculate Maximum</button>
                         <p id="average"></p>
                         <p id="min"></p>
                         <p id="max"></p>
+                        <p>table below is useless just for code ref</p>
+                        <table id="csvTable"></table>
                     </div>
                 </div>
             </div>
@@ -78,7 +86,7 @@ if (!$conn->select_db($database)) {
 }
 
 // Create a string for our SQL query
-$sql = "SELECT track_name, time FROM track WHERE time < (SELECT AVG(time) FROM track) LIMIT 15";
+$sql = "SELECT track_name, time FROM track WHERE time < (SELECT AVG(time) FROM track) LIMIT 5";
 
 // Submit the string to SQL through the connection indicated in $conn
 $result = $conn->query($sql); // Use $conn->query to execute the query
@@ -317,6 +325,51 @@ document.addEventListener("DOMContentLoaded", function() {
 ';
 
 
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $artist_id = intval($_POST["artist_id"]);
+    echo "<script>console.log('Artist ID: " . $artist_id . "');</script>";
+    
+    // Construct the SQL query with a placeholder for the artist ID
+    $sql = "SELECT artist.artist_name, track.album_id, track.track_name
+            FROM artist
+            JOIN track ON artist.artist_id = track.artist_id
+            WHERE artist.artist_id = ?
+            ORDER BY track.album_id";
+    
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($sql);
+    
+    if ($stmt) {
+        // Bind the artist ID parameter
+        $stmt->bind_param("i", $artist_id);
+    
+        // Execute the statement
+        $stmt->execute();
+    
+        // Bind the results
+        $stmt->bind_result($artist_name, $album_id, $track_name);
+    
+        // Fetch and display the data in a table row
+        $table = "<table id='artistTable'>";
+        $table .= "<tr><th>Artist Name</th><th>Album_ID</th><th>Track Name</th></tr>";
+        while ($stmt->fetch()) {
+            $table .= "<tr>";
+            $table .= "<td>" . $artist_name . "</td>";
+            $table .= "<td>" . $album_id . "</td>";
+            $table .= "<td>" . $track_name . "</td>";
+            $table .= "</tr>";
+        }
+        $table .= "</table>";
+        echo "<script>document.getElementById('artistTable').innerHTML = `" . $table . "`;</script>";
+        }
+        else {
+            echo "No results found.";
+        }
+
+} else {
+    echo "Error preparing SQL statement: " . $conn->error;
+}
 // Close the connection (REMEMBER TO DO THIS!)
 $conn->close();
 ?>
+
