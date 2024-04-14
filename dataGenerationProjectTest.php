@@ -59,10 +59,8 @@ function insertPurchaseDetailData($conn, $database, $purchaseID, $locationID){
     $usedIDs = array();
     $sql = "SELECT purchaseDetailID FROM purchaseDetail";
     $result = $conn->query($sql);
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            array_push($usedIDs, $row['purchaseDetailID']);
-        }
+    while ($row = $result->fetch_assoc()) {
+        array_push($usedIDs, $row['purchaseDetailID']);
     }
     for ($i = 1; $i <= rand(1,15); $i++) {
         $productID = getRandomProductId($conn, $usedProducts, $database);
@@ -244,14 +242,14 @@ function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 
             echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
         }
         else {
-            if ($table == 'customers' || $table == 'supplier') {
-                createEnumTables($table, $conn, $bindParams[1], $database);
-            }
             if ($table == 'customers') {
                 insertPurchaseData($conn, $bindParams[1], rand(1,10), $startDate, $endDate, $database);
             }
             if ($table == 'supplier') {
                 insertOrderData($conn, $bindParams[1], rand(1,10), $startDate, $endDate);
+            }
+            if ($table == 'customers' || $table == 'supplier') {
+                createEnumTables($table, $conn, $bindParams[1], $database);
             }
             if($table == 'locations')
             {
@@ -299,7 +297,8 @@ function createEnumTables($table, $conn, $id, $database = 'azimbali') {
     $stmt->bind_param("ii", $user_id, $id);
     $stmt->execute();
     $stmt->close();
-    insertUserData($conn, $user_id, $table, $tableName);
+    $fake = null;
+    insertUserData($conn, $user_id, $table, $tableName, $fake);
 }
 
 function insertOrderData($conn, $supplierID, $quantity, $startDate, $endDate) {
@@ -347,6 +346,13 @@ function insertOrderData($conn, $supplierID, $quantity, $startDate, $endDate) {
 
 function insertOrderDetailData($conn, $orderID, $startDate, $endDate) {
     $orderDetailIDs = array();
+    $sql = "SELECT orderDetailID FROM orderDetail";
+    $result = $conn->query($sql);
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            array_push($orderDetailIDs, $row['orderDetailID']);
+        }
+    }
     for ($i = 1; $i <= rand(1,10); $i++) {
         $productID = getRandomID($conn, 'product', 'productID');
         $inventoryDetailID = getRandomID($conn, 'inventoryDetail', 'inventoryDetailID');
@@ -393,6 +399,8 @@ function getEarliestDate($conn, $id, $table) {
         $row2 = $result2->fetch_assoc();
         $i = $row1['earliestOrderDate'];
         $j = $row2['latestOrderDate'];
+        echo "i: $i\n";
+        echo "j: $j\n";
         return generateRandomDate($i, $j);
     }
     $result = $conn->query($sql);
@@ -406,7 +414,7 @@ function getEarliestDate($conn, $id, $table) {
     return NULL;
 }
 
-function insertUserData($conn, $userID, $enumType, $table) {
+function insertUserData($conn, $userID, $enumType, $table, $locationID) {
     $username = generateRandomString();
     $password = generateRandomInt();
     $user_type = $enumType;
@@ -418,6 +426,9 @@ function insertUserData($conn, $userID, $enumType, $table) {
 
         }
         $id = $row['customerID'];
+        $startDate = getEarliestDate($conn, $id, $table);
+        echo "Customer startDate: $startDate\n";
+        echo "CustomerID: $id\n";
     }
     else if ($table == 'enumSupplier') {
         $sql = "SELECT supplierID FROM enumSupplier WHERE user_id = $userID";
@@ -427,9 +438,20 @@ function insertUserData($conn, $userID, $enumType, $table) {
 
         }
         $id = $row['supplierID'];
+        $startDate = getEarliestDate($conn, $id, $table);
+        echo "Supplier startDate: $startDate\n";
+        echo "SupplierID: $id\n";
     }
-    echo "table: $table\n\n";
-    $startDate = getEarliestDate($conn, $id, $table);
+    else if ($table == 'employees') {
+        $sql = "SELECT MIN(`date`) AS earliestPurchaseDate FROM purchase WHERE locationID = $locationID";
+        $result = $conn->query($sql);
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+        }
+        $startDate = $row['earliestPurchaseDate'];
+        echo "startDate: $startDate\n";
+    }
+    echo " : $table\n\n";
     $endDate = NULL;
     $stmt = $conn->prepare("INSERT INTO users (userID,start_Date, end_Date ,username, password, user_type) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("isssss", $userID, $startDate, $endDate, $username, $password, $user_type);
@@ -542,12 +564,12 @@ function insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDa
     $userIDs = getAllUserIDs($conn);
     for($i=0; $i < $quantity; $i++) { 
         $userID = generateRandomInt($userIDs);
-        insertUserData($conn, $userID, 'employee', 'employees');
+        $locationID = getRandomID($conn, 'locations', 'locationID');
+        insertUserData($conn, $userID, 'employee', 'employees', $locationID);
         array_push($userIDs, $userID);
         $CRMaccess = rand(0,1) == 1;
         $SCMaccess = rand(0,1) == 1;
         $ERPaccess = rand(0,1) == 1;
-        $locationID = getRandomID($conn, 'locations', 'locationID');
         $stmt = $conn->prepare("INSERT INTO $database.employees (userID, CRMaccess, SCMaccess, ERPaccess, locationID) VALUES (?, ?, ?, ?, ?)");
         $stmt->bind_param("iiiii", $userID, $CRMaccess, $SCMaccess, $ERPaccess, $locationID);
         if ($stmt->execute()) {
@@ -559,35 +581,13 @@ function insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDa
     }
 }
 
-//insertRandomProducts($conn, 10, $database);
-//insertRandomPurchase($conn, 10, $database, '2020-01-01', '2020-12-31');
-//insertRandomPurchaseDetail($conn, 10, $database);
-//insertBaseTableData(10, '2020-01-01', '2020-12-31', $conn, $database, 'product');
-/*
-$foreignKeysInfo = array();
-$foreignKeysInfo = getForeignKeys('azimbali', $conn, 'purchaseDetail');
-foreach ($foreignKeysInfo as $columnName => $referencedTableName) {
-    echo "Column: $columnName, Referenced Table: $referencedTableName\n";
-}*/
-
-
-
 $quantity = 10;
 $startDate = '2020-01-01';
 $endDate = '2020-12-31';
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
-insertBaseTableData(3, $startDate, $endDate, $conn, $database, 'locations'); 
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
-insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
-insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDate);
-#$table = `customers`;
-#getEarliestDate($conn, $customerID, $table);
-#$userID = 436;
-#$enumType = 'customer';
-#insertUserData($conn, $userID, $enumType, $table);
-#$orderIDs = 63;
-#insertOrderDetailData($conn, $orderIDs, $startDate, $endDate);
-
-
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
+#insertBaseTableData(3, $startDate, $endDate, $conn, $database, 'locations'); 
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
+#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
+#insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDate);
 mysqli_close($conn);
 ?>
