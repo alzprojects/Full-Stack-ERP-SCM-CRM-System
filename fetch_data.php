@@ -8,70 +8,78 @@ function sanitize_input($input) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Database credentials
     $servername = "mydb.itap.purdue.edu";
-$username = "azimbali";
-$password = "Max!024902!!";
-$database = "azimbali";
+    $username = "azimbali";
+    $password = "Max!024902!!";
+    $database = "azimbali";
 
     // Create connection
-    $conn = new mysqli($servername, $username, $password, $dbname);
+    $conn = new mysqli($servername, $username, $password, $database);
 
     // Check connection
     if ($conn->connect_error) {
         $conn->close(); // Close connection on error
-        die("Connection failed: " . $conn->connect_error);
-    }
-
-    // Get and sanitize search terms
-    $search_terms = sanitize_input($_POST["search_terms"]);
-    $search_by = "ProductID"; // We'll search by ProductID for this case
-
-    // Explode search terms by commas
-    $search_terms_array = explode(",", $search_terms);
-    $sql = "SELECT * FROM Products WHERE ProductID IN (";
-
-    // Constructing the SQL query dynamically
-    foreach ($search_terms_array as $term) {
-        $sql .= $term . ",";
-    }
-    // Remove the last comma and close parentheses
-    $sql = rtrim($sql, ",") . ")";
-
-    // Execute query
-    $result = $conn->query($sql);
-
-    // Close connection if query fails
-    if (!$result) {
-        $conn->close();
-        die("Query failed: " . $conn->error);
-    }
-
-    if ($result->num_rows > 0) {
-        // Initialize an empty array to store the results
-        $data = array();
-
-        // Fetch associative array
-        while ($row = $result->fetch_assoc()) {
-            // Append each row to the data array
-            $data[] = $row;
-        }
-
-        // Encode the data array as JSON
-        $json = json_encode($data);
-
-        // Close connection
-        $conn->close();
-
-        // Output JSON
+        $error_response = array(
+            'error' => 'Connection failed: ' . $conn->connect_error
+        );
+        // Encode the error response array as JSON
+        $json = json_encode($error_response);
+        // Output JSON and exit
         header('Content-Type: application/json');
         echo $json;
-        exit; // Terminate script execution after sending JSON response
-    } else {
-        // Close connection
-        $conn->close();
-
-        echo json_encode(array("message" => "No results found"));
-        exit; // Terminate script execution after sending JSON response
+        exit;
     }
+
+    // Get and sanitize search terms (product IDs)
+    $product_ids = explode(",", sanitize_input($_POST["search_terms"]));
+
+    // Initialize an array to store the data
+    $product_data = array();
+
+    // Loop through each product ID
+    foreach ($product_ids as $product_id) {
+        // Query to fetch product information
+        $sql = "SELECT * FROM product WHERE productID = $product_id";
+
+        $result = $conn->query($sql);
+
+        if (!$result) {
+            $error_response = array(
+                'error' => 'Query failed: ' . $conn->error
+            );
+            // Encode the error response array as JSON
+            $json = json_encode($error_response);
+            // Output JSON and exit
+            header('Content-Type: application/json');
+            echo $json;
+            exit;
+        }
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                // Product information
+                $product_data[] = array(
+                    'product_info' => array(
+                        'productID' => $row['productID'],
+                        'productName' => $row['name'], // Using the 'Name' column directly
+                        'productPrice' => $row['price'] // Using the 'price' column directly
+                    )
+                );
+            }
+        }
+    }
+
+    // Close connection
+    $conn->close();
+
+    // Encode the data array as JSON
+    $json = json_encode($product_data);
+
+    // Output JSON
+    header('Content-Type: application/json');
+    echo $json;
+
+    // Prevent any additional output
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -130,16 +138,17 @@ $database = "azimbali";
         </form>
 
         <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>Product Name</th>
-                    <th>Unit Price</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Data will be dynamically populated here -->
-            </tbody>
-        </table>
+    <thead>
+        <tr>
+            <th>Product ID</th>
+            <th>Product Name</th>
+            <th>Unit Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Data will be dynamically populated here -->
+    </tbody>
+</table>
 
         <canvas id="myChart"></canvas>
     </div>
@@ -171,63 +180,64 @@ $database = "azimbali";
     });
 
     function updateTable(data) {
-        const tableBody = document.querySelector('#dataTable tbody');
-        tableBody.innerHTML = ''; // Clear existing table body
+    const tableBody = document.querySelector('#dataTable tbody');
+    tableBody.innerHTML = ''; // Clear existing table body
 
-        data.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.ProductName}</td>
-                <td>${item.UnitPrice}</td>
-            `;
-            tableBody.appendChild(row); // Append row to table body
+    data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.product_info.productID}</td>
+            <td>${item.product_info.productName}</td>
+            <td>${item.product_info.productPrice}</td>
+        `;
+        tableBody.appendChild(row); // Append row to table body
+    });
+}
+
+function updateChart(data, graphType) {
+    const labels = data.map(item => item.product_info.productID);
+    const values = data.map(item => item.product_info.productPrice);
+
+    const chartData = {
+        labels: labels,
+        datasets: [{
+            label: 'Unit Price',
+            data: values,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    let scales = {};
+    if (graphType === 'line' || graphType === 'bar') {
+        scales = {
+            y: {
+                beginAtZero: true
+            }
+        };
+    }
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: true, // Set maintainAspectRatio to true
+        scales: scales
+    };
+
+    if (!myChart) {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: graphType, // Set chart type based on selected graph type
+            data: chartData,
+            options: chartOptions
         });
+    } else {
+        myChart.config.type = graphType; // Update chart type
+        myChart.data = chartData;
+        myChart.options = chartOptions;
+        myChart.update();
     }
-
-    function updateChart(data, graphType) {
-        const labels = data.map(item => item.ProductName);
-        const values = data.map(item => item.UnitPrice);
-
-        const chartData = {
-            labels: labels,
-            datasets: [{
-                label: 'Unit Price',
-                data: values,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        };
-
-        let scales = {};
-        if (graphType === 'line' || graphType === 'bar') {
-            scales = {
-                y: {
-                    beginAtZero: true
-                }
-            };
-        }
-
-        const chartOptions = {
-            responsive: true,
-            maintainAspectRatio: true, // Set maintainAspectRatio to true
-            scales: scales
-        };
-
-        if (!myChart) {
-            const ctx = document.getElementById('myChart').getContext('2d');
-            myChart = new Chart(ctx, {
-                type: graphType, // Set chart type based on selected graph type
-                data: chartData,
-                options: chartOptions
-            });
-        } else {
-            myChart.config.type = graphType; // Update chart type
-            myChart.data = chartData;
-            myChart.options = chartOptions;
-            myChart.update();
-        }
-    }
+}
 </script>
 
 </body>
