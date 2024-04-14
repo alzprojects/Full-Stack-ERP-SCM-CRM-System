@@ -1,3 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Generation</title>
+</head>
+<body>
+
+<!-- HTML Form for Data Generation -->
+<form action="dataGenerationProjectTest.php" method="post">
+<label for="startDate">Start Date:</label>
+<input type="date" id="startDate" name="startDate" required>
+<label for="endDate">End Date:</label>
+<input type="date" id="endDate" name="endDate" required>
+<label for="quantity">Quantity:</label>
+<input type="number" id="quantity" name="quantity" required>
+<button type="submit" name="generateData">Generate Data</button>
+</form>
+
+<!-- PHP Script for data processing -->
 <?php
 $servername = "mydb.itap.purdue.edu";
 $username = "azimbali";
@@ -10,8 +31,6 @@ $conn = new mysqli($servername, $username, $password, $database);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-
-echo "Connected successfully";
 
 // Function to generate random string for product names
 function generateRandomString($length = 5) {
@@ -38,6 +57,7 @@ function generateRandomInt(array $usedNums = []) {
     return NULL;
 }
 
+// Function to generate random date for dates between $startDate & $endDate
 function generateRandomDate($startDate, $endDate) {
     $startTimestamp = strtotime($startDate);
     $endTimestamp = strtotime($endDate);
@@ -53,7 +73,7 @@ function generateRandomDecimal() {
     return $float;
 }
 
-
+// Function to insert data into the purchaseDetail table 
 function insertPurchaseDetailData($conn, $database, $purchaseID, $locationID){
     $usedProducts = array();
     $usedIDs = array();
@@ -81,7 +101,7 @@ function insertPurchaseDetailData($conn, $database, $purchaseID, $locationID){
     }
 }
 
-
+// Function to get a random purchase ID from the purchase table
 function getPurchaseID($conn, $database) {
     $query = "SELECT purchaseID FROM $database.purchase ORDER BY RAND() LIMIT 1";
     $result = $conn->query($query);
@@ -99,21 +119,35 @@ function getPurchaseID($conn, $database) {
     }
 }
 
+// Function to get a random product ID from the product table that is not in the used IDs array
 function getRandomProductId($conn, array $usedIds, $database) {
     // Convert the array of used IDs into a string for the SQL query, handling the case where there are no used IDs
     $usedIdsString = count($usedIds) > 0 ? implode(',', $usedIds) : '0';
 
-    $query = "SELECT productID FROM $database.product WHERE productID NOT IN ($usedIdsString) ORDER BY RAND() LIMIT 1";
+    // Check database and table name validity
+    if ($conn->select_db($database) === false) {
+        die("Error: Unable to select database $database");
+    }
+
+    $query = "SELECT productID FROM product WHERE productID NOT IN ($usedIdsString) ORDER BY RAND() LIMIT 1";
 
     $result = $conn->query($query);
 
-    if ($result && $result->num_rows > 0) {
+    if (!$result) {
+        // Log the error and the query
+        error_log("SQL Query Failed: " . $conn->error);
+        error_log("Query: " . $query);
+        return null;
+    }
+
+    if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         return $row['productID'];
     }
     return null;
 }
 
+// Function to get a random enum value from a column in a table
 function getRandomEnumValue($conn, $tableName, $columnName) {
     try {
         // Prepare the SQL statement to fetch the column type
@@ -142,11 +176,12 @@ function getRandomEnumValue($conn, $tableName, $columnName) {
     }
 }
 
+// Function to get the column names and data types for a table
 function getTableColumnDetails($conn, $database, $table) {
     $query = "SELECT COLUMN_NAME, DATA_TYPE 
-              FROM INFORMATION_SCHEMA.COLUMNS 
-              WHERE TABLE_SCHEMA = '$database' 
-              AND TABLE_NAME = '$table'";
+            FROM INFORMATION_SCHEMA.COLUMNS 
+            WHERE TABLE_SCHEMA = '$database' 
+            AND TABLE_NAME = '$table'";
 
     $result = $conn->query($query);
     $columnDetails = array();
@@ -168,7 +203,14 @@ function getTableColumnDetails($conn, $database, $table) {
         return false; // Return false if no columns are found
     }
 }
-
+// Function to generate a random product name
+function generateProductName($firstWords=['Super', 'Mega', 'Ultra', 'Happy', 'Fresh'], $descriptors=['Crunchy', 'Spicy', 'Sweet', 'Sizzling', 'Creamy'], $foodWords=['Cookies', 'Pizza', 'Ice Cream', 'Taco', 'Salad']) {
+    $firstWord = $firstWords[array_rand($firstWords)];
+    $descriptor = $descriptors[array_rand($descriptors)];
+    $foodWord = $foodWords[array_rand($foodWords)];
+    return $firstWord . ' ' . $descriptor . ' ' . $foodWord;
+}
+// Function to insert data into the base tables
 function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, $table) {
     $columnDetails = getTableColumnDetails($conn, $database, $table);
     $columnNames = array_keys($columnDetails);
@@ -205,7 +247,11 @@ function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 
                     $bindTypes .= 'd';
                     break;
                 case 'varchar':
-                    $value = generateRandomString(rand(5, 10)); 
+                    if ($table == 'product') {
+                        $value = generateProductName();
+                    } else {
+                        $value = generateRandomString(rand(5, 10));
+                    }
                     $bindTypes .= 's';
                     break;
                 case 'date':
@@ -260,7 +306,7 @@ function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 
     $stmt->close();
 }
 
-
+// Function to insert data into the inventoryDetail table
 function insertInventoryDetailData($conn, $locationID, $database) {
     $products = array();
     $stmt = $conn->prepare("SELECT productID FROM $database.product");
@@ -282,7 +328,7 @@ function insertInventoryDetailData($conn, $locationID, $database) {
         $stmt->close();
     }
 }
-
+// Function to create the enum tables for customers and suppliers
 function createEnumTables($table, $conn, $id, $database = 'azimbali') {
     $userIds = getAllUserIDs($conn);
     $tableName = ($table == 'customers') ? 'enumCustomer' : 'enumSupplier';
@@ -300,7 +346,7 @@ function createEnumTables($table, $conn, $id, $database = 'azimbali') {
     $fake = null;
     insertUserData($conn, $user_id, $table, $tableName, $fake);
 }
-
+// Function to insert data into the order table
 function insertOrderData($conn, $supplierID, $quantity, $startDate, $endDate) {
     $orderIDs = array();
     #fetch the orderIDs from the order table
@@ -343,7 +389,7 @@ function insertOrderData($conn, $supplierID, $quantity, $startDate, $endDate) {
     }
     insertOrderDetailData($conn, $orderID, $startDate, $endDate);
 }
-
+// Function to insert data into the orderDetail table
 function insertOrderDetailData($conn, $orderID, $startDate, $endDate) {
     $orderDetailIDs = array();
     $sql = "SELECT orderDetailID FROM orderDetail";
@@ -370,7 +416,7 @@ function insertOrderDetailData($conn, $orderID, $startDate, $endDate) {
         $stmt->close();
     }    
 }
-
+// Function to get the earliest order date for a customer or supplier
 function getEarliestDate($conn, $id, $table) {
     if ($table == 'enumSupplier') {
         $sql = "SELECT MIN(orderDate) AS earliestOrderDate
@@ -413,7 +459,7 @@ function getEarliestDate($conn, $id, $table) {
     }
     return NULL;
 }
-
+// Function to insert data into the users table
 function insertUserData($conn, $userID, $enumType, $table, $locationID) {
     $username = generateRandomString();
     $password = generateRandomInt();
@@ -463,7 +509,7 @@ function insertUserData($conn, $userID, $enumType, $table, $locationID) {
     $stmt->close();
 }
 
-
+// Function to insert data into the purchase table
 function insertPurchaseData($conn, $customerID, $quantity, $startDate, $endDate, $database) {
     $purchaseIDs = array();
     for ($i = 1; $i <= $quantity; $i++) {
@@ -521,7 +567,7 @@ function getRandomID($conn, $table, $column) {
     }
 }
 
-
+// Function to get the foreign keys for a table
 function getForeignKeys($dbname, $conn, $table_name) {
     $sql = "SELECT 
         k.COLUMN_NAME, 
@@ -546,6 +592,8 @@ function getForeignKeys($dbname, $conn, $table_name) {
     }
     return $foreignKeysInfo;
 }
+
+// Function to get all the user IDs from the users table
 function getAllUserIDs($conn) {
     $sql = "SELECT userID FROM users";    
     $result = mysqli_query($conn, $sql);
@@ -559,6 +607,7 @@ function getAllUserIDs($conn) {
     return $userIDs;
 }
 
+// Function to insert data into the employees table
 function insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDate) {
     $usedIDs = array();
     $userIDs = getAllUserIDs($conn);
@@ -580,14 +629,18 @@ function insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDa
         $stmt->close();
     }
 }
-
-$quantity = 10;
-$startDate = '2020-01-01';
-$endDate = '2020-12-31';
-#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
-#insertBaseTableData(3, $startDate, $endDate, $conn, $database, 'locations'); 
-#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
-#insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
-#insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDate);
+if (isset($_POST['generateData'])) {
+    $startDate = $_POST['startDate'];
+    $endDate = $_POST['endDate'];
+    $quantity = $_POST['quantity'];
+    $startDate = filter_var($startDate, FILTER_SANITIZE_STRING);
+    $endDate = filter_var($endDate, FILTER_SANITIZE_STRING);
+    $quantity = filter_var($quantity, FILTER_SANITIZE_NUMBER_INT);
+    insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
+    insertBaseTableData(3, $startDate, $endDate, $conn, $database, 'locations'); 
+    insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
+    insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
+    insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDate);
+}
 mysqli_close($conn);
 ?>
