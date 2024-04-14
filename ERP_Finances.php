@@ -1,5 +1,5 @@
 <?php
-/* 
+/*   
 Notes from Sarah!
 This is how all functions will be commented.
 This section here is all of the basic HTML structure that allows the contents
