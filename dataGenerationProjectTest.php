@@ -629,6 +629,36 @@ function insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDa
         $stmt->close();
     }
 }
+
+// Function to delete all existing 
+function deleteData($conn, $database) {
+    $sqlStatements = [
+        "DELETE FROM enumCustomer",
+        "DELETE FROM purchaseDetail",
+        "DELETE FROM orderDetail",
+        "DELETE FROM inventoryDetail",
+        "DELETE FROM enumSupplier",
+        "DELETE FROM purchase",
+        "DELETE FROM `order`",
+        "DELETE FROM employees",
+        "DELETE FROM supplier",
+        "DELETE FROM customers",
+        "DELETE FROM locations",
+        "DELETE FROM product",
+        "DELETE FROM users "
+    ];
+    for ($i = 0; $i < count($sqlStatements); $i++) {
+        $stmt = $conn->prepare($sqlStatements[$i]);
+        if ($stmt->execute()) {
+            echo "Data deleted successfully.\n";
+        } else {
+            echo "Error: " . $stmt->error . "\n";
+        }
+        $stmt->close();
+    }
+}
+
+
 if (isset($_POST['generateData'])) {
     $startDate = $_POST['startDate'];
     $endDate = $_POST['endDate'];
@@ -636,6 +666,7 @@ if (isset($_POST['generateData'])) {
     $startDate = filter_var($startDate, FILTER_SANITIZE_STRING);
     $endDate = filter_var($endDate, FILTER_SANITIZE_STRING);
     $quantity = filter_var($quantity, FILTER_SANITIZE_NUMBER_INT);
+    deleteData($conn, $database);
     insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
     insertBaseTableData(3, $startDate, $endDate, $conn, $database, 'locations'); 
     insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
