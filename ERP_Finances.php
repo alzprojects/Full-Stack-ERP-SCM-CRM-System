@@ -34,8 +34,8 @@ echo <<<EOT
                     <h3>Data</h3>
                     <p>Enter a product ID (rn actually artist ID), and get a plot that shows the artist name, album id, and track name on all albums. Minimal capability to affect charts/ tables (WIP)</p>
                     <form method="post" >
-                        <label for="artist_id">Enter Product ID (0 will Select All):</label>
-                        <input type="number" id="artist_id" name="artist_id" required>
+                        <label for="product_id">Enter Product ID (0 will Select All):</label>
+                        <input type="number" id="product_id" name="product_id" required>
                         <button type="submit">Submit</button>
                     </form>
                     <table id="artistTable"></table>
@@ -48,7 +48,7 @@ echo <<<EOT
                         <canvas id="chartCanvas"></canvas>
                         <p>Date Purchases by Day of Week:</p>
                         <canvas id="chartCanvas2"></canvas>
-                        <p>Profits/ Losses over Time (Number of plays is actual data being represented) </p>
+                        <p>Purchases over Time (all Products) </p>
                         <canvas id="chartCanvas3"></canvas>
                     </div>
                     <div id="bottomRightContainer">
@@ -62,6 +62,7 @@ echo <<<EOT
                         <p id="mostP"></p>
                         <p><strong>Calculation 3:</strong> Total Number of Purchases Processed</p>
                         <p id="totalP"></p>
+                        <table id="csvTable"></table>
                     </div>
                 </div>
             </div>
@@ -115,10 +116,10 @@ This is where the database setup happens, it is currently connected to my
 Purdue database where the music database from lab10 is still loaded. 
 */
 
-$servername = "mydb.itap.purdue.edu"; // Remove spaces
-$username = "sdeniz"; // Replace with your actual myPHPAdmin username
-$password = "Paragon#2014"; // Replace with your actual myPHPAdmin password
-$database = "sdeniz"; // Replace with your actual myPHPAdmin database name
+$servername = "mydb.itap.purdue.edu";
+$username = "azimbali";
+$password = "Max!024902!!";
+$database = "azimbali";
 
 // Create connection (ONLY NEEDED ONCE per PHP page!)
 $conn = new mysqli($servername, $username, $password);
@@ -142,7 +143,10 @@ deleted.
 */
 
 // Create a string for our SQL query
-$sql = "SELECT track_name, time FROM track WHERE time < (SELECT AVG(time) FROM track) LIMIT 5";
+// need this to be: select product_id, quantity from inventoryDetail 
+$sql = "SELECT purchaseID, locationID, `date`
+FROM purchase
+LIMIT 10";
 
 // Submit the string to SQL through the connection indicated in $conn
 $result = $conn->query($sql); // Use $conn->query to execute the query
@@ -155,20 +159,16 @@ if ($result === false) {
 // Start the HTML table
 echo "<script>document.getElementById('csvTable').innerHTML = `";
 echo "<table border='1'>";
-echo "<tr><th>Track Name</th><th>Time</th></tr>";
+echo "<tr><th>Purchase ID</th><th>Location ID</th><th>Date</th></tr>";
 
 // Initialize song_lengths array
-$song_lengths = array();
-$track_ids = array();
+$purchase_IDs = array();
+$location_IDs = array();
+$dates = array();
 
 // Fetch and print the results
 while ($row = $result->fetch_assoc()) {
-    // You can access individual columns like $row['track_name'] and $row['time']
-    // Use echo to print specific values or print_r to print the entire row data
-    $color = $row['time'] < 3 ? 'red' : 'transparent';
-    echo "<tr><td>" . $row['track_name'] . "</td><td style='background-color: $color;'>" . $row['time'] . "</td></tr>";
-    $song_lengths[] = floatval($row['time']);
-    $track_ids[] = $row['track_id'];
+    echo "<tr><td>" . $row['purchaseID'] . "</td><td>" . $row['locationID'] . "</td><td>" . $row['date'] . "</td></tr>";    $song_lengths[] = floatval($row['time']);
 }
 
 // End the HTML table
@@ -177,49 +177,22 @@ echo "</table>";
 echo "`;</script>";
 
 /*
-This is where the JS calculations happen. Really the only calculation is 
-the average function, which can defo be done in PHP as well if needed. 
-*/
-
-echo "<script>var songLengths = " . json_encode($song_lengths) . ";</script>";
-echo "<script>var trackIds = " . json_encode($track_ids) . ";</script>";
-
-// Include the Chart.js library
-echo '<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>';
-
-// Pass the PHP array to JavaScript
-echo "<script>var songLengths = " . json_encode($song_lengths) . ";</script>";
-// Add a JavaScript function to calculate the average
-echo '
-<script>
-    function calculateAverage() {
-        var total = 0;
-        for(var i = 0; i < songLengths.length; i++) {
-            total += songLengths[i];
-        }
-        var avg = total / songLengths.length;
-        document.getElementById("average").innerText = "Average price of a purchase (song length): " + avg;
-    }
-
-</script>
-';
-
-/*
-This function calculated the date that has the most songs played. It actually
+This function calculates the date that has the most songs played. It actually
 picks the specific time too, not just the day. Once the proper DB is linked, 
 it will be the date with the most purchases. 
 */
 
-$date = getDateWithMostSongsPlayed($conn);
-echo "<script>document.getElementById('mostP').innerText = 'The date with the most items purchased is (songs played): " . $date . "';</script>";
+$date = getDateWithMostPurchases($conn);
+echo "<script>document.getElementById('mostP').innerText = 'The product with the most items purchased is: " . $date . "';</script>";
 
-function getDateWithMostSongsPlayed($conn) {
+function getDateWithMostPurchases($conn) {
     // Construct the SQL query
-    $sql = "SELECT played, COUNT(*) as song_count
-            FROM played
-            GROUP BY played
-            ORDER BY song_count DESC
-            LIMIT 1";
+
+    $sql = "SELECT productID, SUM(quantity) as total_quantity
+        FROM purchaseDetail
+        GROUP BY productID
+        ORDER BY total_quantity DESC
+        LIMIT 1";
 
     // Execute the SQL query
     $result = $conn->query($sql);
@@ -229,25 +202,27 @@ function getDateWithMostSongsPlayed($conn) {
         // Fetch the first row from the result
         $row = $result->fetch_assoc();
         // Return the date
-        return $row['played'];
+        return $row['productID'];
     } else {
         // No result, return null
         return null;
     }
 }
 
+
 /*
 This function is similar to the previous one, but calculates what the total
-number of songs played all year was. Will be amended to be number of purchases
+number of purchases placed all year was. Will be amended to be number of purchases
 placed all year. 
 */
 
 $totalPlayed = getTotalSongsPlayed($conn);
-echo "<script>document.getElementById('totalP').innerText = 'The total number of items purchased to date (songs played): " . $totalPlayed . "';</script>";
+echo "<script>document.getElementById('totalP').innerText = 'The total number of purchases processed: " . $totalPlayed . "';</script>";
 
 function getTotalSongsPlayed($conn) {
     // Construct the SQL query
-    $sql = "SELECT COUNT(*) as total_played FROM played";
+    $sql = "SELECT COUNT(purchaseID) as total_purchases 
+        FROM purchase";
 
     // Execute the SQL query
     $result = $conn->query($sql);
@@ -257,7 +232,7 @@ function getTotalSongsPlayed($conn) {
         // Fetch the first row from the result
         $row = $result->fetch_assoc();
         // Return the total number of songs played
-        return $row['total_played'];
+        return $row['total_purchases'];
     } else {
         // No result, return 0
         return 0;
@@ -265,36 +240,36 @@ function getTotalSongsPlayed($conn) {
 }
 
 /*
-Not gonna lie really proud of this function :') 
-It lets you choose a product id/ artist id/ whatever and then
-it adjusts the plots tables etc. RN just chart1 and the table
-at the bottom but more functionalities coming soon!!!
+When the user chooses a specific productID, it shows the history of
+purchases over time for that specific product
  */
 
-if ($_SERVER["REQUEST_METHOD"] == "POST"){
-    $artist_id = intval($_POST["artist_id"]);
+ if ($_SERVER["REQUEST_METHOD"] == "POST"){
+    $product_id = intval($_POST["product_id"]);
     // Typing 0 works as a select all
-    if ($artist_id == "0") {
-        $sql = "SELECT played, COUNT(*) as song_count
-                FROM played
-                GROUP BY played
-                ORDER BY played";
+    if ($product_id == "0") {
+        $sql = "SELECT `date`, COUNT(purchaseID) as purchase_count
+                FROM purchase
+                GROUP BY `date`
+                ORDER BY `date`";   
+
         $stmt = $conn->prepare($sql);
     } else {
-        $sql = "SELECT played, COUNT(*) as song_count
-                FROM played
-                WHERE artist_id = ?
-                GROUP BY played
-                ORDER BY played";
+        $sql = "SELECT p.`date`, COUNT(p.purchaseID) as purchase_count
+                FROM purchase p
+                JOIN purchaseDetail pd ON p.purchaseID = pd.purchaseID
+                WHERE pd.productID = ?
+                GROUP BY p.`date`
+                ORDER BY p.`date`";
         
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $artist_id);
+        $stmt->bind_param("i", $product_id);
     }
     // Execute the statement
     $stmt->execute();
     
     // Bind the results
-    $stmt->bind_result($played, $song_count);
+    $stmt->bind_result($date, $purchase_count);
 
 
     /* This table outputs time played vs number of songs
@@ -302,19 +277,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
     date vs number of purchases made etc. Not currently
     embedded in HTML. Also for graph 1 (that adjusts 
     based on artist_id) */
-    $playedArray = array();
-    $songCountArray = array();
-
-    echo "<table>";
-    echo "<tr><th>Played</th><th>Song Count</th></tr>";
+    $dateArray = array();
+    $purchaseCount = array();
 
     while ($stmt->fetch()) {
-        echo "<tr><td>" . $played . "</td><td>" . $song_count . "</td></tr>";
-        $playedArray[] = $played;
-        $songCountArray[] = $song_count;
+        $dateArray[] = $date;
+        $purchaseCount[] = $purchase_count;
     }
-
-    echo "</table>";
 
     echo "
     <script>
@@ -322,10 +291,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
     var myChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: " . json_encode($playedArray) . ",
+            labels: " . json_encode($dateArray) . ",
             datasets: [{
-                label: '# of Songs',
-                data: " . json_encode($songCountArray) . ",
+                label: '# of Purchases',
+                data: " . json_encode($purchaseCount) . ",
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1
@@ -342,7 +311,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
     </script>
     ";
 }
-
 /*
 This is where we ge to the fun stuff! This is the function that lets the user
 properly query and control the data being displayed. The catch is that it 
@@ -353,48 +321,51 @@ the thing you want to see.
 */
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $artist_id = intval($_POST["artist_id"]);
-    echo "<script>console.log('Artist ID: " . $artist_id . "');</script>";
+    $product_id = intval($_POST["artist_id"]);
     
     // Typing 0 works as a select all
-    if ($artist_id == "0") {
+    if ($product_id == "0") {
         // Construct the SQL query without a WHERE clause
-        $sql = "SELECT artist.artist_name, track.album_id, track.track_name
-                FROM artist
-                JOIN track ON artist.artist_id = track.artist_id
-                ORDER BY artist.artist_id";
+        $sql = "SELECT pd.purchaseID, pd.quantity, p.`date`, p.locationID
+                FROM purchaseDetail pd
+                JOIN purchase p ON pd.purchaseID = p.purchaseID
+                ORDER BY pd.quantity DESC
+                LIMIT 20";
         // Prepare the SQL statement
         $stmt = $conn->prepare($sql);
     } else {
         // Convert the artist ID to an integer
-        $artist_id = intval($artist_id);
+        $product_id = intval($product_id);
         // Construct the SQL query with a placeholder for the artist ID
-        $sql = "SELECT artist.artist_name, track.album_id, track.track_name
-                FROM artist
-                JOIN track ON artist.artist_id = track.artist_id
-                WHERE artist.artist_id = ?
-                ORDER BY track.album_id";
+        $sql = "SELECT pd.purchaseID, pd.quantity, p.`date`, p.locationID
+                FROM purchaseDetail pd
+                JOIN purchase p ON pd.purchaseID = p.purchaseID
+                WHERE pd.productID = ?
+                ORDER BY pd.quantity DESC
+                LIMIT 20";
+
         // Prepare the SQL statement
         $stmt = $conn->prepare($sql);
         // Bind the artist ID parameter
         if ($stmt) {
-            $stmt->bind_param("i", $artist_id);
+            $stmt->bind_param("i", $product_id);
         }
     }
         // Execute the statement
         $stmt->execute();
     
         // Bind the results
-        $stmt->bind_result($artist_name, $album_id, $track_name);
+        $stmt->bind_result($purchaseID, $quantity, $date, $locationID);
     
         // Fetch and display the data in a table row
         $table = "<table id='artistTable'>";
-        $table .= "<tr><th>Artist Name</th><th>Album_ID</th><th>Track Name</th></tr>";
+        $table .= "<tr><th>PurchaseID</th><th>Item Quantity</th><th>Date</th><th>Location</th></tr>";
         while ($stmt->fetch()) {
             $table .= "<tr>";
-            $table .= "<td>" . $artist_name . "</td>";
-            $table .= "<td>" . $album_id . "</td>";
-            $table .= "<td>" . $track_name . "</td>";
+            $table .= "<td>" . $purchaseID . "</td>";
+            $table .= "<td>" . $quantity . "</td>";
+            $table .= "<td>" . $date . "</td>";
+            $table .= "<td>" . $locationID . "</td>";
             $table .= "</tr>";
         }
         $table .= "</table>";
@@ -404,77 +375,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 } else {
     echo "Error preparing SQL statement: " . $conn->error;
 }
-/*
-This function is mostly defunct and is not actually displayed on the website, 
-however, it is connected to literally all of the other graphs. So. Can't 
-get rid of it without thinking. A lot. Later problem! If you were to readd
-chartCanvas to the HTML though, you'd get a line chart with the time each 
-track was played. 
-*/
 
-// Fetch the data from your database
-$sql = "SELECT track_id, played FROM played ";
-$result = $conn->query($sql);
-
-if ($result === false) {
-    die("Query failed: " . $conn->error);
-}
-
-// Initialize the arrays
-$track_ids = array();
-$played_times = array();
-
-// Fetch and store the results
-while ($row = $result->fetch_assoc()) {
-    $track_ids[] = $row['track_id'];
-    $played_times[] = $row['played'];
-}
-
-// Pass the PHP arrays to JavaScript
-echo "<script>var trackIds = " . json_encode($track_ids) . ";</script>";
-echo "<script>var playedTimes = " . json_encode($played_times) . ";</script>";
-
-
-// Create a canvas for your chart and use the Chart.js library to create a line chart
-echo '
-<canvas id="chart"></canvas>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    var ctx = document.getElementById("chartCanvas4").getContext("2d");
-    var chart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: playedTimes, // Use playedTimes as labels (x-axis)
-            datasets: [{
-                label: "Track ID",
-                data: trackIds, // Use trackIds as data (y-axis)
-                fill: false,
-                borderColor: "rgb(75, 192, 192)",
-                tension: 0.1
-            }]
-        },
-        
-        options: {
-            scales: {
-                
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-</script>
-';
 
 /*
 This query and chart is for the "purchases per date" graph, and is formulated
 to display a line graph of how purchases fluctuate with time. X-axis is 
 date and y-axis is number of plays, which is going to be number of purchases.
 */
-$sql = "SELECT DATE(played) AS play_date, COUNT( track_id ) AS songs_played
-FROM played
-GROUP BY DATE( played )
-ORDER BY play_date";
+
+$sql = " SELECT DATE(`date`) AS purchase_date, COUNT( purchaseID ) AS purchase_count
+FROM purchase
+GROUP BY DATE(`date`)
+ORDER BY purchase_date";
 
 $result = $conn->query($sql);
 
@@ -483,20 +395,20 @@ if ($result === false) {
 }
 echo "<script>document.getElementById('testTable').innerHTML = `";
 echo '<table>';
-echo '<tr><th>Play Date</th><th>Songs Played</th></tr>';
-$track_ids = array();
-$play_counts = array();
+echo '<tr><th>Purchase Date</th><th>Purchase IDs</th></tr>';
+$purchase_ids = array();
+$purchase_counts = array();
 while ($row = $result->fetch_assoc()) {
-    echo '<tr><td>' . $row['play_date'] . '</td><td>' . $row['songs_played'] . '</td></tr>';
-    $track_ids[] = $row['play_date'];
-    $play_counts[] = $row['songs_played'];
+    echo '<tr><td>' . $row['purchase_date'] . '</td><td>' . $row['purchase_count'] . '</td></tr>';
+    $purchase_ids[] = $row['purchase_date'];
+    $purchase_counts[] = $row['purchase_count'];
 }
 
 echo '</table>';
 echo "`;</script>";
 
-echo "<script>var trackIds = " . json_encode($track_ids) . ";</script>";
-echo "<script>var playCounts = " . json_encode($play_counts) . ";</script>";
+echo "<script>var purchaseIds = " . json_encode($purchase_ids) . ";</script>";
+echo "<script>var purchaseCounts = " . json_encode($purchase_counts) . ";</script>";
 
 
 echo '
@@ -506,10 +418,10 @@ echo '
     var chart = new Chart(ctx, {
         type: "line",
         data: {
-            labels: trackIds, // Use trackIds as labels (x-axis)
+            labels: purchaseIds, // Use trackIds as labels (x-axis)
             datasets: [{
-                label: "Number of Plays",
-                data: playCounts, // Use playCounts as data (y-axis)
+                label: "Number of Purchases",
+                data: purchaseCounts, // Use playCounts as data (y-axis)
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 borderColor: "rgba(75, 192, 192, 1)",
                 borderWidth: 1
@@ -536,35 +448,30 @@ of a line chart.
 
 // First loop: Convert dates to days of the week
 $result->data_seek(0); // Reset result pointer to the beginning
-$track_ids = array();
-$play_counts = array();
-while ($row = $result->fetch_assoc()) {
-    $date = $row['play_date'];
-    $dayOfWeek = date('l', strtotime($date));
-    $track_ids[] = $dayOfWeek;
-}
+$purchase_ids = array();
+$purchase_counts = array('Sunday' => 0, 'Monday' => 0, 'Tuesday' => 0, 'Wednesday' => 0, 'Thursday' => 0, 'Friday' => 0, 'Saturday' => 0);
 
-// Second loop: Store play counts
-$result->data_seek(0); // Reset result pointer to the beginning
 while ($row = $result->fetch_assoc()) {
-    $play_counts[] = $row['songs_played']; // Convert play count to integer
+    $date = $row['purchase_date'];
+    $dayOfWeek = date('l', strtotime($date));
+    $purchase_counts[$dayOfWeek] += $row['purchase_count']; // Increment the count for the corresponding day of the week
 }
 
 // Pass the PHP arrays to JavaScript
-echo "<script>var trackIds = " . json_encode($track_ids) . ";</script>";
-echo "<script>var playCounts = " . json_encode($play_counts) . ";</script>";
+echo "<script>var purchaseIds = " . json_encode($purchase_ids) . ";</script>";
+echo "<script>var purchaseCounts = " . json_encode($purchase_counts) . ";</script>";
 
-// Second loop: Generate the chart
+// Generate the chart
 echo '
 <script>
     var ctx = document.getElementById("chartCanvas2").getContext("2d");
     var chart = new Chart(ctx, {
         type: "bar",
         data: {
-            labels: trackIds, // Use trackIds as labels (x-axis)
+            labels: Object.keys(purchaseCounts), // Use the days of the week as labels (x-axis)
             datasets: [{
-                label: "Number of Plays",
-                data: playCounts, // Use playCounts as data (y-axis)
+                label: "Number of Purchases",
+                data: Object.values(purchaseCounts), // Use the purchase counts as data (y-axis)
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 borderColor: "rgba(75, 192, 192, 1)",
                 borderWidth: 1
@@ -580,8 +487,6 @@ echo '
     });
 </script>
 ';
-
-
 
 // Close the connection (REMEMBER TO DO THIS!)
 $conn->close();
