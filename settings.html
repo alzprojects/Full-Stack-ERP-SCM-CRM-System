@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Settings</h1>
+    <nav>
+        <ul>
+            <li><a href="#dark-light">Dark/Light Mode</a></li>
+            <li><a href="#colorblind">Colorblind Accessibility</a></li>
+        </ul>
+    </nav>
+
+    <div id="dark-light" class="settings-section">
+        <h2>Dark/Light Mode</h2>
+        <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
+            <span class="slider round"></span>
+        </label>
+    </div>
+
+    <div id="colorblind" class="settings-section">
+        <h2>Colorblind Accessibility</h2>
+        <button onclick="showColorblindOptions()">Select Colorblind Mode</button>
+        <div id="colorblind-options" class="hidden">
+            <label><input type="radio" name="colorblind-mode" value="normal"> Normal</label><br>
+            <label><input type="radio" name="colorblind-mode" value="protanopia"> Protanopia</label><br>
+            <label><input type="radio" name="colorblind-mode" value="deuteranopia"> Deuteranopia</label><br>
+            <label><input type="radio" name="colorblind-mode" value="tritanopia"> Tritanopia</label><br>
+        </div>
+    </div>
+
+    <button onclick="goBack()">Back to Homepage</button>
+
+    <script>
+        function toggleDarkMode() {
+            var body = document.body;
+            body.classList.toggle("dark-mode");
+        }
+
+        function showColorblindOptions() {
+            var colorblindOptions = document.getElementById("colorblind-options");
+            colorblindOptions.classList.toggle("hidden");
+        }
+
+        document.querySelectorAll('input[name="colorblind-mode"]').forEach((radio) => {
+            radio.addEventListener("change", applyColorblindMode);
+        });
+
+        function applyColorblindMode() {
+            var selectedMode = document.querySelector('input[name="colorblind-mode"]:checked').value;
+            var body = document.body;
+
+            if (selectedMode === "normal") {
+                body.classList.remove("protanopia-mode", "deuteranopia-mode", "tritanopia-mode");
+            } else if (selectedMode === "protanopia") {
+                body.classList.remove("deuteranopia-mode", "tritanopia-mode");
+                body.classList.add("protanopia-mode");
+            } else if (selectedMode === "deuteranopia") {
+                body.classList.remove("protanopia-mode", "tritanopia-mode");
+                body.classList.add("deuteranopia-mode");
+            } else if (selectedMode === "tritanopia") {
+                body.classList.remove("protanopia-mode", "deuteranopia-mode");
+                body.classList.add("tritanopia-mode");
+            }
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
