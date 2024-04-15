@@ -87,7 +87,7 @@ if (isset($_POST['email']) && isset($_POST['password']))
     <div class="form-group" class="col-md-12">        
             <button type="submit" class="btn btn-success btn-block"><b>Login</b></button>
             <!-- Guest Login Button -->
-            <button type="button" class="btn btn-primary btn-block" onclick="location.href='index.html'"><b>Login as Guest</b></button> 
+            <button type="button" class="btn btn-primary btn-block" onclick="window.location.href='add_data.php'"><b>Login as Guest</b></button> 
     </div>
     </form>
 </div>
