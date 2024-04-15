@@ -25,6 +25,7 @@ if(isset($_GET['userId']))
 		$SCMAccess = $row['AccessSCM'];
 		$ERPAccess = $row['AccessERP'];
 		$CRMAccess = $row['AccessCRM'];
+		$location = $row['location_id'];
 	}
 }else{
 	?><script>history.back();</script><?php
@@ -72,7 +73,7 @@ function btn_logout_onclick()
 </script>
 <div class="container">
     <div class="welcome">
-        <p>Welcome, <strong><?php echo 'ID: '.$userId .' ('. strtoupper($firstName) .' '. strtoupper($lastName) .')'; ?></strong></p>
+	<p>Welcome, <strong><?php echo 'ID: ' . $userId . ' (' . strtoupper($firstName) . ' ' . strtoupper($lastName) . ') Location: ' . strtoupper($location); ?></strong></p>
     </div>
     <div class="button-group"><?php
         if ($SCMAccess == 1){
