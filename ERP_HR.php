@@ -26,16 +26,16 @@ echo <<<EOT
             <a href="login.html">Login</a>
             <a href="ERP_Inventory.php">Inventory</a>
             <a href="ERP_Finances.php">Finances</a>
-            <a href="ERP_HR.php">HR</a>  
+            <a href="ERP_HR.php">HR</a>   
         </div>
-        <h3>ERP Inventory</h3>
+        <h3>ERP Human Resources</h3>
             <div id ="smallContainer">
                 <div id="leftContainer">
                     <h3>Data</h3>
-                    <p>Enter a product ID, and see a table with the quantity, location,
-                    inventory detail ID, order ID, and delivery date </p>
+                    <p>Enter a user ID, and see a table with their locationID, start date,
+                    and if they're an employee, supplier, or customer (but just employees rn)</p>
                     <form method="post" >
-                        <label for="product_id">Enter Product ID (0 will Select All):</label>
+                        <label for="product_id">Enter User ID (0 will Select All):</label>
                         <input type="number" id="product_id" name="product_id" required>
                         <button type="submit">Submit</button>
                     </form>
@@ -45,14 +45,12 @@ echo <<<EOT
                 <div id="rightContainer">
                     <div id="topRightContainer">
                         <h3>Plots & Figures</h3>
-                        these do not work. teehee. need to fix. 
-                        <p>Quantity of Orders Delivered over Time (per Product):</p>
-                        <canvas id="chartCanvas4"></canvas>
-                        <p>Quantity of Orders Delivered over Time (all Products) </p>
+                        <p>Purchase over Time (for specified productID)</p>
+                        <canvas id="chartCanvas"></canvas>
+                        <p>Purchases over Time (all Products) </p>
                         <canvas id="chartCanvas3"></canvas>
-                        <p>Distribution of Delivery Locations:</p>
+                        <p>Date Purchases by Day of Week:</p>
                         <canvas id="chartCanvas2"></canvas>
-                        
                     </div>
                     <div id="bottomRightContainer">
                         <h3>Data Summary</h3>
@@ -136,6 +134,48 @@ if ($conn->connect_error) {
 if (!$conn->select_db($database)) {
     die("Database selection failed: " . $conn->error);
 }
+
+/*
+This is where the first query happens. This is directly code from lab.
+This query isn't actually being used right now. Its purpose is to highlight
+the cells whose time is less than avg in red. We can repurpose. I kept it
+because it is connected to other functions but will likely be eventually
+deleted. 
+*/
+
+// Create a string for our SQL query
+// need this to be: select product_id, quantity from inventoryDetail 
+$sql = "SELECT purchaseID, locationID, `date`
+FROM purchase
+LIMIT 10";
+
+// Submit the string to SQL through the connection indicated in $conn
+$result = $conn->query($sql); // Use $conn->query to execute the query
+
+// Check if the query was successful
+if ($result === false) {
+    die("Query failed: " . $conn->error);
+}
+
+// Start the HTML table
+echo "<script>document.getElementById('csvTable').innerHTML = `";
+echo "<table border='1'>";
+echo "<tr><th>Purchase ID</th><th>Location ID</th><th>Date</th></tr>";
+
+// Initialize song_lengths array
+$purchase_IDs = array();
+$location_IDs = array();
+$dates = array();
+
+// Fetch and print the results
+while ($row = $result->fetch_assoc()) {
+    echo "<tr><td>" . $row['purchaseID'] . "</td><td>" . $row['locationID'] . "</td><td>" . $row['date'] . "</td></tr>";    $song_lengths[] = floatval($row['time']);
+}
+
+// End the HTML table
+echo "</table>";
+
+echo "`;</script>";
 
 /*
 This function will calculate what the average purchase price 
@@ -236,8 +276,9 @@ function sanitize_input($input) {
     return htmlspecialchars(stripslashes(trim($input)));
 }
 
+
 /*
-This is where we get to the fun stuff! This is the function that lets the user
+This is where we ge to the fun stuff! This is the function that lets the user
 properly query and control the data being displayed. The catch is that it 
 only affects the table in the "data" section right now. Not anything else. 
 There is an option to select all with 0. Otherwise you choose an ArtistID, 
@@ -245,137 +286,100 @@ which will eventually be an EmployeeID or ProductID to view details about
 the thing you want to see.  
 */
 
-$product_id = 0; // Default value
+$user_id = 0; // Default value
+echo "
+<script>
+document.getElementById('product_id_paragraph').innerText = 'The selected user ID is: ' + $user_id;
+</script>
+";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST"){
-    $product_id = intval(sanitize_input($_POST["product_id"]));
-    echo"
-    <script>
-    document.getElementById('product_id_paragraph').innerText = 'The product ID is: ' + $product_id;
-    </script>
-    ";
+    $user_id = intval(sanitize_input($_POST["product_id"]));
+    
 }
     
 // Typing 0 works as a select all
-if ($product_id == "0") {
+if ($user_id == "0") {
     // Construct the SQL query without a WHERE clause
-    $sql = "SELECT inventoryDetail.quantity, inventoryDetail.productID, inventoryDetail.locationID, inventoryDetail.inventoryDetailID, 
-            `order`.orderID, `order`.deliveryDate
-            FROM inventoryDetail 
-            INNER JOIN orderDetail ON inventoryDetail.inventoryDetailID = orderDetail.inventoryDetailID 
-            INNER JOIN `order` ON orderDetail.orderID = `order`.orderID 
-            ORDER BY `order`.deliveryDate ASC
+    $sql = "SELECT users.userID, employees.locationID, users.start_date, users.user_type 
+            FROM users 
+            JOIN employees ON users.userID = employees.userID 
+            ORDER BY employees.locationID
             LIMIT 20
             ";
     // Prepare the SQL statement
     $stmt = $conn->prepare($sql);
 } else {
-    $product_id = intval($product_id);
-    // Construct the SQL query with a placeholder for the artist ID
-    $sql = "SELECT inventoryDetail.quantity, inventoryDetail.productID, inventoryDetail.locationID, inventoryDetail.inventoryDetailID, 
-            `order`.orderID, `order`.deliveryDate
-            FROM inventoryDetail 
-            INNER JOIN orderDetail ON inventoryDetail.inventoryDetailID = orderDetail.inventoryDetailID 
-            INNER JOIN `order` ON orderDetail.orderID = `order`.orderID 
-            WHERE inventoryDetail.productID = ?
-            ORDER BY `order`.deliveryDate ASC
+    $user_id = intval($user_id);
+    // Construct the SQL query with a placeholder for the user ID
+    $sql = "SELECT users.userID, employees.locationID, users.start_date, users.user_type 
+            FROM users 
+            JOIN employees ON users.userID = employees.userID 
+            WHERE users.userID =?
+            ORDER BY employees.locationID
             LIMIT 20
             ";
+
     // Prepare the SQL statement
     $stmt = $conn->prepare($sql);
-    // Bind the artist ID parameter
+    // Bind the user ID parameter
     if ($stmt) {
-        $stmt->bind_param("i", $product_id);
+        $stmt->bind_param("i", $user_id);
     }
 }
-// Execute the statement
-$stmt->execute();
+    // Execute the statement
+    $stmt->execute();
 
-// Bind the results
-$stmt->bind_result($quantity, $productID, $locationID, $inventoryDetailID, $orderID, $deliveryDate);
+    // Bind the results
+    $stmt->bind_result($userID, $locationID, $start_date, $user_type);
 
-$quantityArray = [];
-$deliveryDateArray = [];
-
-// Fetch and display the data in a table row
-$table = "<table id='artistTable'>";
-$table .= "<tr><th>Quantity</th><th>Location ID</th><th>Inventory Detail ID</th><th>Order ID</th><th>Delivery Date</th></tr>";
-    
-while ($stmt->fetch()) {
-    $table .= "<tr>";
-    $table .= "<td>" . $quantity . "</td>";
-    $table .= "<td>" . $locationID . "</td>";
-    $table .= "<td>" . $inventoryDetailID . "</td>";
-    $table .= "<td>" . $orderID . "</td>";
-    $table .= "<td>" . $deliveryDate . "</td>";
-    $table .= "</tr>";
-    $quantityArray[] = $quantity;
-    $deliveryDateArray[] = $deliveryDate;
-}
-$table .= "</table>";
-echo "<script>document.getElementById('artistTable').innerHTML = `" . $table . "`;</script>";
-    
-// Convert the arrays to JSON
-$quantityJson = json_encode($quantityArray);
-$deliveryDateJson = json_encode($deliveryDateArray);
-
-// Output the script to create the chart
-echo "
-<script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
-<script>
-var ctx = document.getElementById('chartCanvas4').getContext('2d');
-var myChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: $deliveryDateJson,
-        datasets: [{
-            label: 'Quantity',
-            data: $quantityJson,
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
+    // Fetch and display the data in a table row
+    $table = "<table id='artistTable'>";
+    $table .= "<tr><th>Location ID</th><th>Start Date</th><th>User Type</th></tr>";
+    while ($stmt->fetch()) {
+        $table .= "<tr>";
+        $table .= "<td>" . $locationID . "</td>";
+        $table .= "<td>" . $start_date . "</td>";
+        $table .= "<td>" . $user_type . "</td>";
+        $table .= "</tr>";
     }
-});
-</script>
-";
+    $table .= "</table>";
+    echo "<script>document.getElementById('artistTable').innerHTML = `" . $table . "`;</script>";
+    
+
 /*
 This query and chart is for the "purchases per date" graph, and is formulated
 to display a line graph of how purchases fluctuate with time. X-axis is 
 date and y-axis is number of plays, which is going to be number of purchases.
 */
-$sql = "SELECT sum(inventoryDetail.quantity) as q, inventoryDetail.inventoryDetailID, 
-        `order`.orderID, `order`.deliveryDate as d
-        FROM inventoryDetail 
-        INNER JOIN orderDetail ON inventoryDetail.inventoryDetailID = orderDetail.inventoryDetailID 
-        INNER JOIN `order` ON orderDetail.orderID = `order`.orderID 
-        GROUP BY `order`.deliveryDate
-        LIMIT 20
-        ";
+
+$sql = " SELECT DATE(`date`) AS purchase_date, COUNT( purchaseID ) AS purchase_count
+FROM purchase
+GROUP BY DATE(`date`)
+ORDER BY purchase_date";
 
 $result = $conn->query($sql);
 
 if ($result === false) {
     die("Query failed: " . $conn->error);
 }
-
+echo "<script>document.getElementById('testTable').innerHTML = `";
+echo '<table>';
+echo '<tr><th>Purchase Date</th><th>Purchase IDs</th></tr>';
 $purchase_ids = array();
 $purchase_counts = array();
-
 while ($row = $result->fetch_assoc()) {
-    $purchase_ids[] = $row['d'];
-    $purchase_counts[] = $row['q'];
+    echo '<tr><td>' . $row['purchase_date'] . '</td><td>' . $row['purchase_count'] . '</td></tr>';
+    $purchase_ids[] = $row['purchase_date'];
+    $purchase_counts[] = $row['purchase_count'];
 }
+
+echo '</table>';
+echo "`;</script>";
 
 echo "<script>var purchaseIds = " . json_encode($purchase_ids) . ";</script>";
 echo "<script>var purchaseCounts = " . json_encode($purchase_counts) . ";</script>";
+
 
 echo '
 
@@ -386,7 +390,7 @@ echo '
         data: {
             labels: purchaseIds, // Use trackIds as labels (x-axis)
             datasets: [{
-                label: "Number of Orders Delivered",
+                label: "Number of Purchases",
                 data: purchaseCounts, // Use playCounts as data (y-axis)
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 borderColor: "rgba(75, 192, 192, 1)",
@@ -404,66 +408,56 @@ echo '
 </script>
 ';
 
-$sql = "SELECT locationID, SUM(quantity) as total_quantity 
-        FROM inventoryDetail 
-        GROUP BY locationID";
+/*
+This function does something very similar to the previous one, but splits
+up the data by day of the week instead of just the date. Somewhere in the 
+first 10 lines sorcery was performed to make the code work. Don't know how
+or why it worked. Hasn't been tested much. Also makes a bar chart instead
+of a line chart. 
+*/
 
-$stmt = $conn->prepare($sql);
+// First loop: Convert dates to days of the week
+$result->data_seek(0); // Reset result pointer to the beginning
+$purchase_ids = array();
+$purchase_counts = array('Sunday' => 0, 'Monday' => 0, 'Tuesday' => 0, 'Wednesday' => 0, 'Thursday' => 0, 'Friday' => 0, 'Saturday' => 0);
 
-// Execute the statement
-$stmt->execute();
-
-// Bind the results
-$stmt->bind_result($locationID, $total_quantity);
-
-// Initialize arrays to store the data
-$locationArray = [];
-$quantityArray = [];
-
-// Fetch and store the data in arrays
-while ($stmt->fetch()) {
-    $locationArray[] = $locationID;
-    $quantityArray[] = $total_quantity;
+while ($row = $result->fetch_assoc()) {
+    $date = $row['purchase_date'];
+    $dayOfWeek = date('l', strtotime($date));
+    $purchase_counts[$dayOfWeek] += $row['purchase_count']; // Increment the count for the corresponding day of the week
 }
 
-// Convert the arrays to JSON
-$locationJson = json_encode($locationArray);
-$quantityJson = json_encode($quantityArray);
+// Pass the PHP arrays to JavaScript
+echo "<script>var purchaseIds = " . json_encode($purchase_ids) . ";</script>";
+echo "<script>var purchaseCounts = " . json_encode($purchase_counts) . ";</script>";
 
-// Output the script to create the pie chart
-echo "
-<script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
+// Generate the chart
+echo '
 <script>
-var ctx = document.getElementById('chartCanvas2').getContext('2d');
-var myChart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-        labels: $locationJson,
-        datasets: [{
-            label: 'Quantity at Location',
-            data: $quantityJson,
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(75, 192, 192, 0.2)',
-                'rgba(153, 102, 255, 0.2)',
-                'rgba(255, 159, 64, 0.2)'
-            ],
-            borderColor: [
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 1
-        }]
-    }
-});
+    var ctx = document.getElementById("chartCanvas2").getContext("2d");
+    var chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: Object.keys(purchaseCounts), // Use the days of the week as labels (x-axis)
+            datasets: [{
+                label: "Number of Purchases",
+                data: Object.values(purchaseCounts), // Use the purchase counts as data (y-axis)
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                borderColor: "rgba(75, 192, 192, 1)",
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 </script>
-";
+';
+
 
 
 // Close the connection (REMEMBER TO DO THIS!)
