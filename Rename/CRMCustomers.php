@@ -124,6 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="styles2.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Fetch User Data</title>
 </head>
 <body>
@@ -132,8 +133,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     <input type="number" id="textInput" placeholder="Enter CustomerID Here">
     <button id="loadPurchaseDetailBtn">Load PurchaseDetail Data by PurchaseID</button>
     <input type="number" id="purchaseID" placeholder="Enter PurchaseID Here">
-
+    <button id="showSummaryStats">Show Summary Stats</button>
     <div id="dataDisplay"></div>
+    <canvas id="myChart1" width="100" height="100"></canvas>
+    <canvas id="myChart2" width="100" height="100"></canvas>
 
 <script>
     let allUserData = [];  // This will store all the user data
@@ -151,6 +154,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     });
     document.getElementById('loadPurchaseDetailBtn').addEventListener('click', function() {
         fetchPurchaseDetailData();
+    });
+    document.getElementById('showSummaryStats').addEventListener('click', function() {
+        showSummaryStats();
     });
 
 
@@ -211,38 +217,139 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         });
     }
 
-    function displayData(data) {
-    const display = document.getElementById('dataDisplay');
-    display.innerHTML = '';  // Clear previous data
+    function showSummaryStats() {
+        let arr = extractDataFromTable();
+        let headers = Object.keys(arr[0]);  
+        if (headers.includes('satisfactionRating')) {
+            let satisfactionRatings = arr.map(item => item.satisfactionRating);
+            let satisfactionCounts = satisfactionRatings.reduce((acc, rating) => {
+                acc[rating] = (acc[rating] || 0) + 1;
+                return acc;
+            }, {});
+            let satisfactionLabels = Object.keys(satisfactionCounts);
+            let satisfactionData = Object.values(satisfactionCounts);
 
-    const table = document.createElement('table');
-    table.style.width = '100%';
-    table.setAttribute('border', '1');
+            let ctx = document.getElementById('myChart1').getContext('2d');
+            let myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: satisfactionLabels,
+                    datasets: [{
+                        label: 'Satisfaction Ratings',
+                        data: satisfactionData,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        if (headers.includes('locationID')) {
+            let locationIDs = arr.map(item => item.locationID);
+            let locationCounts = locationIDs.reduce((acc, location) => {
+                acc[location] = (acc[location] || 0) + 1;
+                return acc;
+            }, {});
+            let locationLabels = Object.keys(locationCounts);
+            let locationData = Object.values(locationCounts);
 
-    const headerRow = table.insertRow();
-    let headers = data.length > 0 ? Object.keys(data[0]) : [];
-    // Create header cells
-    if (headers.length === 0) {
-        display.innerHTML = '<strong>Customer does not exist</strong>';
-        return;
+            let ctx = document.getElementById('myChart2').getContext('2d');
+            let myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: locationLabels,
+                    datasets: [{
+                        label: 'Location IDs',
+                        data: locationData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {                    
+                    scales: {
+                        y: {                            
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
     }
-    headers.forEach(headerText => {
-        let headerCell = document.createElement('th');
-        headerCell.textContent = headerText;
-        headerRow.appendChild(headerCell);
-    });
+   
 
-    // Populate table rows with data
-    data.forEach(item => {
-        const row = table.insertRow();
-        headers.forEach(header => {
-            let cell = row.insertCell();
-            cell.textContent = item[header];
+    function displayData(data) {
+        const display = document.getElementById('dataDisplay');
+        display.innerHTML = '';  // Clear previous data
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.setAttribute('border', '1');
+
+        const headerRow = table.insertRow();
+        let headers = data.length > 0 ? Object.keys(data[0]) : [];
+        // Create header cells
+        if (headers.length === 0) {
+            display.innerHTML = '<strong>Customer does not exist</strong>';
+            return;
+        }
+        headers.forEach(headerText => {
+            let headerCell = document.createElement('th');
+            headerCell.textContent = headerText;
+            headerRow.appendChild(headerCell);
         });
+
+        // Populate table rows with data
+        data.forEach(item => {
+            const row = table.insertRow();
+            headers.forEach(header => {
+                let cell = row.insertCell();
+                cell.textContent = item[header];
+            });
+        });
+
+        // Append the table to the display element
+        display.appendChild(table);
+    }
+    
+    function extractDataFromTable() {
+    const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
+    if (!table) {
+        console.log("No table found.");
+        return [];  // Return an empty array if no table is found
+    }
+
+    const rows = Array.from(table.rows);
+    if (rows.length < 2) {
+        console.log("Not enough data to extract.");
+        return [];  // Need at least two rows to have headers and data
+    }
+
+    const headers = rows.shift().cells;  // The first row is headers
+    const headerNames = Array.from(headers).map(header => header.textContent);
+
+    const data = rows.map(row => {
+        const cells = Array.from(row.cells);
+        let item = {};
+        cells.forEach((cell, index) => {
+            item[headerNames[index]] = cell.textContent;
+        });
+        return item;
     });
 
-    // Append the table to the display element
-    display.appendChild(table);
+    return data;
 }
 
 
