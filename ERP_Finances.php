@@ -24,45 +24,40 @@ echo <<<EOT
         <div class="navbar">
             <a href="homePage.html">Home</a>
             <a href="login.html">Login</a>
-            <a href="ERP.php">ERP</a>
-            <a href="SCM.html">SCM</a>
-            <a href="CRM.html">CRM</a>  
+            <a href="ERP_Inventory.php">Inventory</a>
+            <a href="ERP_Finances.php">Finances</a>
+            <a href="ERP_HR.php">HR</a>  
         </div>
-        <h3>ERP Inventory</h3>
+        <h3>ERP Finances</h3>
             <div id ="smallContainer">
                 <div id="leftContainer">
                     <h3>Data</h3>
-                    <p>Enter a product ID (rn actually artist ID), and get a plot that shows the artist name, album id, and track name on all albums. Minimal capability to affect charts/ tables (WIP)</p>
+                    <p>Enter a Product ID, and see a table with relevant data</p>
                     <form method="post" >
                         <label for="product_id">Enter Product ID (0 will Select All):</label>
                         <input type="number" id="product_id" name="product_id" required>
                         <button type="submit">Submit</button>
                     </form>
+                    <p id="product_id_paragraph"></p>
                     <table id="artistTable"></table>
-                    
                 </div>
                 <div id="rightContainer">
                     <div id="topRightContainer">
                         <h3>Plots & Figures</h3>
-                        <p>Number of Purchases per Date (adjusts when Product ID query is changed)</p>
-                        <canvas id="chartCanvas"></canvas>
-                        <p>Date Purchases by Day of Week:</p>
-                        <canvas id="chartCanvas2"></canvas>
+                        <p id="chartDescription" style="display: none;">Purchase over Time (for specified productID)</p>                        <canvas id="chartCanvas"></canvas>
                         <p>Purchases over Time (all Products) </p>
                         <canvas id="chartCanvas3"></canvas>
+                        <p>Date Purchases by Day of Week:</p>
+                        <canvas id="chartCanvas2"></canvas>
                     </div>
                     <div id="bottomRightContainer">
                         <h3>Data Summary</h3>
                         <p><strong>Calculation 1:</strong> Average Purchase Price</p>
-                        <script>window.onload = function() {
-                            calculateAverage();
-                        };</script>
-                        <p id="average"></p>
+                        <p id="avgP"></p>
                         <p><strong>Calculation 2:</strong> Day with Most Purchases</p>
                         <p id="mostP"></p>
                         <p><strong>Calculation 3:</strong> Total Number of Purchases Processed</p>
                         <p id="totalP"></p>
-                        <table id="csvTable"></table>
                     </div>
                 </div>
             </div>
@@ -71,6 +66,9 @@ echo <<<EOT
             <!-- <script src="SCM_Script.js"></script> -->    
 </body>
 EOT;
+
+
+
 /*
 These next 2 echo statements are to call the JS script library, and then to
 create the function that allows for the containers to be resizable. 
@@ -127,6 +125,7 @@ $conn = new mysqli($servername, $username, $password);
 // Check connection was successful, otherwise immediately exit the script
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
+    $conn->close();
 }
 
 // Select the specific database
@@ -176,6 +175,33 @@ echo "</table>";
 
 echo "`;</script>";
 
+/*
+This function will calculate what the average purchase price 
+is based on quantity of products multiplied by price of products. */
+
+$averagePrice = getAveragePurchasePrice($conn);
+echo "<script>document.getElementById('avgP').innerText = 'The average purchase price is: " . $averagePrice . "';</script>";
+
+function getAveragePurchasePrice($conn) {
+    // Construct the SQL query
+    $sql = "SELECT AVG(p.price * pd.quantity) as average_price
+            FROM product p
+            JOIN purchaseDetail pd ON p.productID = pd.productID";
+
+    // Execute the SQL query
+    $result = $conn->query($sql);
+
+    // Check if the query returned a result
+    if ($result->num_rows > 0) {
+        // Fetch the first row from the result
+        $row = $result->fetch_assoc();
+        // Return the average price
+        return $row['average_price'];
+    } else {
+        // No result, return null
+        return null;
+    }
+}
 /*
 This function calculates the date that has the most songs played. It actually
 picks the specific time too, not just the day. Once the proper DB is linked, 
@@ -244,56 +270,81 @@ When the user chooses a specific productID, it shows the history of
 purchases over time for that specific product
  */
 
- if ($_SERVER["REQUEST_METHOD"] == "POST"){
-    $product_id = intval($_POST["product_id"]);
-    // Typing 0 works as a select all
-    if ($product_id == "0") {
-        $sql = "SELECT `date`, COUNT(purchaseID) as purchase_count
-                FROM purchase
-                GROUP BY `date`
-                ORDER BY `date`";   
+function sanitize_input($input) {
+    return htmlspecialchars(stripslashes(trim($input)));
+}
 
-        $stmt = $conn->prepare($sql);
-    } else {
-        $sql = "SELECT p.`date`, COUNT(p.purchaseID) as purchase_count
-                FROM purchase p
-                JOIN purchaseDetail pd ON p.purchaseID = pd.purchaseID
-                WHERE pd.productID = ?
-                GROUP BY p.`date`
-                ORDER BY p.`date`";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $product_id);
-    }
-    // Execute the statement
-    $stmt->execute();
-    
-    // Bind the results
-    $stmt->bind_result($date, $purchase_count);
+$product_id = 0; // Default value
+echo "
+<script>
+document.getElementById('chartCanvas').style.display = 'none';
+document.getElementById('chartDescription').style.display = 'none';
+document.getElementById('product_id_paragraph').innerText = 'The product ID is: ' + $product_id;
+</script>
+";
 
-
-    /* This table outputs time played vs number of songs
-    played during that time, which can be modified to be
-    date vs number of purchases made etc. Not currently
-    embedded in HTML. Also for graph 1 (that adjusts 
-    based on artist_id) */
-    $dateArray = array();
-    $purchaseCount = array();
-
-    while ($stmt->fetch()) {
-        $dateArray[] = $date;
-        $purchaseCount[] = $purchase_count;
-    }
-
+if ($_SERVER["REQUEST_METHOD"] == "POST"){
+    $product_id = intval(sanitize_input($_POST["product_id"]));
     echo "
     <script>
+    document.getElementById('product_id_paragraph').innerText = 'The product ID is: ' + $product_id;
+    if ($product_id != 0) {
+        document.getElementById('chartCanvas').style.display = 'block';
+        document.getElementById('chartDescription').style.display = 'block';
+
+    }
+    </script>
+    ";
+}
+// Typing 0 works as a select all
+if ($product_id == "0") {
+    $sql = "SELECT `date`, COUNT(purchaseID) as purchase_count
+            FROM purchase
+            GROUP BY `date`
+            ORDER BY `date`";   
+
+    $stmt = $conn->prepare($sql);
+} else {
+    $sql = "SELECT p.`date`, COUNT(p.purchaseID) as purchase_count
+            FROM purchase p
+            JOIN purchaseDetail pd ON p.purchaseID = pd.purchaseID
+            WHERE pd.productID = ?
+            GROUP BY p.`date`
+            ORDER BY p.`date`";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $product_id);
+}
+// Execute the statement
+$stmt->execute();
+
+// Bind the results
+$stmt->bind_result($date, $purchase_count);
+
+
+/* This table outputs time played vs number of songs
+played during that time, which can be modified to be
+date vs number of purchases made etc. Not currently
+embedded in HTML. Also for graph 1 (that adjusts 
+based on product_id) */
+$dateArray = array();
+$purchaseCount = array();
+
+while ($stmt->fetch()) {
+    $dateArray[] = $date;
+    $purchaseCount[] = $purchase_count;
+}
+
+echo "
+<script>
+if ($product_id != 0) {
     var ctx = document.getElementById('chartCanvas').getContext('2d');
     var myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: " . json_encode($dateArray) . ",
             datasets: [{
-                label: '# of Purchases',
+                label: 'Number of Purchases',
                 data: " . json_encode($purchaseCount) . ",
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 borderColor: 'rgba(75, 192, 192, 1)',
@@ -308,9 +359,10 @@ purchases over time for that specific product
             }
         }
     });
-    </script>
-    ";
 }
+</script>
+";
+
 /*
 This is where we ge to the fun stuff! This is the function that lets the user
 properly query and control the data being displayed. The catch is that it 
@@ -320,62 +372,60 @@ which will eventually be an EmployeeID or ProductID to view details about
 the thing you want to see.  
 */
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $product_id = intval($_POST["artist_id"]);
-    
-    // Typing 0 works as a select all
-    if ($product_id == "0") {
-        // Construct the SQL query without a WHERE clause
-        $sql = "SELECT pd.purchaseID, pd.quantity, p.`date`, p.locationID
-                FROM purchaseDetail pd
-                JOIN purchase p ON pd.purchaseID = p.purchaseID
-                ORDER BY pd.quantity DESC
-                LIMIT 20";
-        // Prepare the SQL statement
-        $stmt = $conn->prepare($sql);
-    } else {
-        // Convert the artist ID to an integer
-        $product_id = intval($product_id);
-        // Construct the SQL query with a placeholder for the artist ID
-        $sql = "SELECT pd.purchaseID, pd.quantity, p.`date`, p.locationID
-                FROM purchaseDetail pd
-                JOIN purchase p ON pd.purchaseID = p.purchaseID
-                WHERE pd.productID = ?
-                ORDER BY pd.quantity DESC
-                LIMIT 20";
+$product_id = 0; // Default value
 
-        // Prepare the SQL statement
-        $stmt = $conn->prepare($sql);
-        // Bind the artist ID parameter
-        if ($stmt) {
-            $stmt->bind_param("i", $product_id);
-        }
-    }
-        // Execute the statement
-        $stmt->execute();
-    
-        // Bind the results
-        $stmt->bind_result($purchaseID, $quantity, $date, $locationID);
-    
-        // Fetch and display the data in a table row
-        $table = "<table id='artistTable'>";
-        $table .= "<tr><th>PurchaseID</th><th>Item Quantity</th><th>Date</th><th>Location</th></tr>";
-        while ($stmt->fetch()) {
-            $table .= "<tr>";
-            $table .= "<td>" . $purchaseID . "</td>";
-            $table .= "<td>" . $quantity . "</td>";
-            $table .= "<td>" . $date . "</td>";
-            $table .= "<td>" . $locationID . "</td>";
-            $table .= "</tr>";
-        }
-        $table .= "</table>";
-        echo "<script>document.getElementById('artistTable').innerHTML = `" . $table . "`;</script>";
-        
-
-} else {
-    echo "Error preparing SQL statement: " . $conn->error;
+if ($_SERVER["REQUEST_METHOD"] == "POST"){
+    $product_id = intval(sanitize_input($_POST["product_id"]));
 }
+    
+// Typing 0 works as a select all
+if ($product_id == "0") {
+    // Construct the SQL query without a WHERE clause
+    $sql = "SELECT pd.purchaseID, pd.quantity, p.`date`, p.locationID
+            FROM purchaseDetail pd
+            JOIN purchase p ON pd.purchaseID = p.purchaseID
+            ORDER BY pd.quantity DESC
+            LIMIT 20";
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($sql);
+} else {
+    // Convert the artist ID to an integer
+    $product_id = intval($product_id);
+    // Construct the SQL query with a placeholder for the artist ID
+    $sql = "SELECT pd.purchaseID, pd.quantity, p.`date`, p.locationID
+            FROM purchaseDetail pd
+            JOIN purchase p ON pd.purchaseID = p.purchaseID
+            WHERE pd.productID = ?
+            ORDER BY pd.quantity DESC
+            LIMIT 20";
 
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($sql);
+    // Bind the artist ID parameter
+    if ($stmt) {
+        $stmt->bind_param("i", $product_id);
+    }
+}
+    // Execute the statement
+    $stmt->execute();
+
+    // Bind the results
+    $stmt->bind_result($purchaseID, $quantity, $date, $locationID);
+
+    // Fetch and display the data in a table row
+    $table = "<table id='artistTable'>";
+    $table .= "<tr><th>PurchaseID</th><th>Item Quantity</th><th>Date</th><th>Location</th></tr>";
+    while ($stmt->fetch()) {
+        $table .= "<tr>";
+        $table .= "<td>" . $purchaseID . "</td>";
+        $table .= "<td>" . $quantity . "</td>";
+        $table .= "<td>" . $date . "</td>";
+        $table .= "<td>" . $locationID . "</td>";
+        $table .= "</tr>";
+    }
+    $table .= "</table>";
+    echo "<script>document.getElementById('artistTable').innerHTML = `" . $table . "`;</script>";
+    
 
 /*
 This query and chart is for the "purchases per date" graph, and is formulated
@@ -487,6 +537,8 @@ echo '
     });
 </script>
 ';
+
+
 
 // Close the connection (REMEMBER TO DO THIS!)
 $conn->close();
