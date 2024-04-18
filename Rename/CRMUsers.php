@@ -3,9 +3,9 @@
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_users') {
     // Database connection settings
     $servername = "mydb.itap.purdue.edu";
-    $username = "azimbali";
-    $password = "Max!024902!!";
-    $database = "azimbali";
+    $username = "g1135081";
+    $password = "4i1]4S*Mns83";
+    $database = "g1135081";
 
     $conn = new mysqli($servername, $username, $password, $database);
 

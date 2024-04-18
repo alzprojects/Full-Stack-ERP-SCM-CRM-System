@@ -21,9 +21,9 @@
 <!-- PHP Script for data processing -->
 <?php
 $servername = "mydb.itap.purdue.edu";
-$username = "azimbali";
-$password = "Max!024902!!";
-$database = "azimbali";
+$username = "g1135081";
+$password = "4i1]4S*Mns83";
+$database = "g1135081";
 
 $conn = new mysqli($servername, $username, $password, $database);
 
@@ -329,22 +329,22 @@ function insertInventoryDetailData($conn, $locationID, $database) {
     }
 }
 // Function to create the enum tables for customers and suppliers
-function createEnumTables($table, $conn, $id, $database = 'azimbali') {
+function createEnumTables($table, $conn, $id, $database = 'g1135081') {
     $userIds = getAllUserIDs($conn);
     $tableName = ($table == 'customers') ? 'enumCustomer' : 'enumSupplier';
     $fk = ($table == 'supplier') ? 'supplierID' : 'customerID';
     if ($table == 'customers') {
         $table = 'customer';
     }
-    $user_id = generateRandomInt($userIds);
+    $userID = generateRandomInt($userIds);
     echo "fk: $fk\n";
     echo "tableName: $tableName\n";
-    $stmt = $conn->prepare("INSERT INTO $database.$tableName (user_id, $fk) VALUES (?, ?)");
-    $stmt->bind_param("ii", $user_id, $id);
+    $stmt = $conn->prepare("INSERT INTO $database.$tableName (userID, $fk) VALUES (?, ?)");
+    $stmt->bind_param("ii", $userID, $id);
     $stmt->execute();
     $stmt->close();
     $fake = null;
-    insertUserData($conn, $user_id, $table, $tableName, $fake);
+    insertUserData($conn, $userID, $table, $tableName, $fake);
 }
 // Function to insert data into the order table
 function insertOrderData($conn, $supplierID, $quantity, $startDate, $endDate) {
@@ -465,7 +465,7 @@ function insertUserData($conn, $userID, $enumType, $table, $locationID) {
     $password = generateRandomInt();
     $user_type = $enumType;
     if ($table == 'enumCustomer') {
-        $sql = "SELECT customerID FROM enumCustomer WHERE user_id = $userID";
+        $sql = "SELECT customerID FROM enumCustomer WHERE userID = $userID";
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
@@ -477,7 +477,7 @@ function insertUserData($conn, $userID, $enumType, $table, $locationID) {
         echo "CustomerID: $id\n";
     }
     else if ($table == 'enumSupplier') {
-        $sql = "SELECT supplierID FROM enumSupplier WHERE user_id = $userID";
+        $sql = "SELECT supplierID FROM enumSupplier WHERE userID = $userID";
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
@@ -512,6 +512,13 @@ function insertUserData($conn, $userID, $enumType, $table, $locationID) {
 // Function to insert data into the purchase table
 function insertPurchaseData($conn, $customerID, $quantity, $startDate, $endDate, $database) {
     $purchaseIDs = array();
+    $sql = "SELECT purchaseID FROM purchase";
+    $result = $conn->query($sql);
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            array_push($purchaseIDs, $row['purchaseID']);
+        }
+    }
     for ($i = 1; $i <= $quantity; $i++) {
         $purchaseID = generateRandomInt($purchaseIDs);
         if ($purchaseID === NULL) {
