@@ -15,13 +15,13 @@ if (!$conn)
 	die("Connection failed: " . $conn->connect_error);
 }
 
-// Check if email and password are set
-if (isset($_POST['email']) && isset($_POST['password'])) 
+// Check if username and password are set
+if (isset($_POST['username']) && isset($_POST['password'])) 
 {
-    	$email = $_POST['email'];
+    	$username = $_POST['username'];
     	$password = $_POST['password'];
 
-	$query = "SELECT user_id, email, password, role FROM users WHERE email = '$email' AND password = '$password'";
+	$query = "SELECT user_id, username, password, role FROM users WHERE username = '$username' AND password = '$password'";
 	$statement = $conn->prepare($query);
 	$statement->execute();
 	$result = $statement->fetchAll();
@@ -55,7 +55,7 @@ if (isset($_POST['email']) && isset($_POST['password']))
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login Page</title>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="loginstyle.css">
 <style>
     .logo-container {
         position: absolute;
@@ -72,13 +72,12 @@ if (isset($_POST['email']) && isset($_POST['password']))
     <img src="logo.png" alt="Website Logo" style="width: 100px;"> <!-- Adjust the width as needed -->
 </div>
 
-
 <div class="container">
     <form action="login.php" method="post">
         <h2>Login</h2>
         <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" class="form-control" value="<?php echo $email; ?>" required>
+            <label for="username">Username:</label>
+            <input type="username" id="username" name="username" class="form-control" value="<?php echo $username; ?>" required>
         </div>
         <div class="form-group">
             <label for="password">Password:</label>
@@ -86,9 +85,12 @@ if (isset($_POST['email']) && isset($_POST['password']))
         </div>
     <div class="form-group" class="col-md-12">        
             <button type="submit" class="btn btn-success btn-block"><b>Login</b></button>
-            <!-- Guest Login Button -->
-            <button type="button" class="btn btn-primary btn-block" onclick="window.location.href='add_data.php'"><b>Login as Guest</b></button> 
-    </div>
+
+            <div class="form-group">
+            <label for="dataNumber">Add Data:</label>
+            <input type="number" id="addData" name="addData" class="form-control">
+            <button type="submit" class="btn btn-info btn-block"><b>Submit</b></button>
+        </div>
     </form>
 </div>
 
