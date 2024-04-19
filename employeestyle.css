@@ -1,0 +1,62 @@
+body {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    background-color: black;
+    color: white;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+}
+
+.logo-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 10px;
+}
+
+.logo-container img {
+    width: 100px; /* Adjust as needed */
+}
+
+.container {
+    width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: rgba(2, 0, 47, 0.341);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+}
+
+.welcome {
+    font-size: 18px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.button-group {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.btn-custom {
+    padding: 10px 15px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    background-color: #0056b3; /* Primary blue */
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.btn-custom:hover {
+    background-color: #004080; /* Darker blue on hover */
+}
+
+.btn-danger {
+    background-color: #d9534f; /* Bootstrap's `btn-danger` color */
+}
+
+.btn-danger:hover {
+    background-color: #c9302c; /* Darker red on hover */
+}

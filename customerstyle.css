@@ -1,0 +1,111 @@
+body {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    background-color: black;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    color: white;
+}
+
+/* Adjusting logo container and image sizes based on your new logo styling */
+.logo-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 80px;
+    height: 80px;
+}
+
+.logo-container img {
+    width: 100%;
+    height: auto;
+}
+
+.container {
+    width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: rgba(2, 0, 47, 0.341);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.welcome {
+    font-size: 18px;
+    margin-top: 20px;
+    color: rgb(50, 224, 224); /* Cyan-like color for greeting text */
+}
+
+.button-group {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.btn-custom {
+    padding: 10px;
+    border: none;
+    background-color: #d9534f;
+    color: white;
+    cursor: pointer;
+    margin-right: 15px;
+    transition: background-color 0.3s;
+}
+
+.btn-custom:hover {
+    background-color: #c9302c;
+}
+
+.navbar {
+    overflow: hidden;
+    background-color: #dddddd5d;
+    width: 100%;
+}
+
+.navbar a, .navbar .dropdown .dropbtn {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 18px 20px;
+    text-decoration: none;
+    width: 20%;
+    box-sizing: border-box;
+}
+
+.navbar a:hover, .navbar .dropdown .dropbtn:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+table, th, td {
+    width: 100%;
+    font-size: 12px;
+    border-collapse: collapse;
+    border: 1px solid white;
+    padding: 8px;
+    text-align: left;
+    table-layout: fixed;
+}
+
+#smallContainer {
+    display: flex;
+    flex-direction: row;
+    margin: 5px;
+}
+
+#leftContainer, #centerContainer, #rightContainer {
+    border: 1px solid black;
+    margin: 5px;
+    flex-basis: 0;
+}
+
+#leftContainer {
+    flex-grow: 1.2;
+}
+
+#centerContainer {
+    flex-grow: 2;
+}
+
+#rightContainer {
+    flex-grow: 0.5;
+}
