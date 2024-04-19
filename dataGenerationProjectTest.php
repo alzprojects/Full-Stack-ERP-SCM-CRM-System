@@ -641,13 +641,15 @@ function insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDa
     for($i=0; $i < $quantity; $i++) { 
         $userID = generateRandomInt($userIDs);
         $locationID = getRandomID($conn, 'locations', 'locationID');
+        $fname = generateRandomString();
+        $lname = generateRandomString();
         insertUserData($conn, $userID, 'employee', 'employees', $locationID);
         array_push($userIDs, $userID);
         $CRMaccess = rand(0,1) == 1;
         $SCMaccess = rand(0,1) == 1;
         $ERPaccess = rand(0,1) == 1;
-        $stmt = $conn->prepare("INSERT INTO $database.employees (userID, CRMaccess, SCMaccess, ERPaccess, locationID) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("iiiii", $userID, $CRMaccess, $SCMaccess, $ERPaccess, $locationID);
+        $stmt = $conn->prepare("INSERT INTO $database.employees (userID, fname, lname, CRMaccess, SCMaccess, ERPaccess, locationID) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issiiii", $userID, $fname, $lname, $CRMaccess, $SCMaccess, $ERPaccess, $locationID);
         if ($stmt->execute()) {
             echo "New record created successfully for userID: $userID\n\n";
         } else {

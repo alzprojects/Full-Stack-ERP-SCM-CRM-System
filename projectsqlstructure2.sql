@@ -11,7 +11,8 @@ CREATE TABLE customers
 (
     customerID INT PRIMARY KEY,
     gender VARCHAR(10),
-    name VARCHAR(255)
+    fname VARCHAR(255),
+    lname VARCHAR(255)
 );
 
 CREATE TABLE product (
@@ -58,6 +59,8 @@ CREATE TABLE users (
 
 CREATE TABLE employees (
     userID INT PRIMARY KEY NOT NULL,
+    fname VARCHAR(255),
+    lname VARCHAR(255),
     CRMAccess BOOLEAN,
     SCMAccess BOOLEAN,
     ERPAccess BOOLEAN,
