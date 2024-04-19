@@ -25,10 +25,18 @@ searchForm.addEventListener('submit', async (e) => {
     const endDate = document.getElementById('end_date').value;
 
     // Validate search terms client-side
-    if (!validateInput(searchTerms)) {
+    if (!validateOrders(searchTerms)) {
         // Invalid input, show alert to the user and stop form submission
         alert('Invalid input format. Please enter comma-separated non-negative integers for order IDs or "0".');
         return;
+    }
+
+    console.log("Start Date:", startDate);
+    console.log("End Date:", endDate);
+    // Check if start date is after end date
+    if (startDate > endDate) {
+        alert("Start date cannot be after end date!");
+        return; // Stop further execution
     }
 
     const formData = new FormData();
@@ -50,7 +58,7 @@ searchForm.addEventListener('submit', async (e) => {
 });
 
 // Function to validate search terms
-function validateInput(searchTerms) {
+function validateOrders(searchTerms) {
     // Check if search terms are empty or contain valid comma-separated non-negative integers
     return searchTerms === "" || /^(\d+,)*\d+$/.test(searchTerms);
 }
