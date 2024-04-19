@@ -1,6 +1,6 @@
 <?php
 // Check if this is an AJAX request for user data
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_customers') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_suppliers') {
     // Database connection settings
     $servername = "mydb.itap.purdue.edu";
     $username = "g1135081";
@@ -13,36 +13,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         die("Connection failed: " . $conn->connect_error);
     }
     
-    function getAllCustomerIDs($conn) {
-        $sql = "SELECT customerID, gender, name FROM customers";
+    function getAllSupplierIDs($conn) {
+        $sql = "SELECT supplierID, name, address FROM supplier";
         $result = mysqli_query($conn, $sql);
         if (!$result) {
             header('Content-Type: application/json');
             echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
             exit;
         }
-        $userDetails = array();
+        $customerDetails = array();
         while ($row = mysqli_fetch_assoc($result)) {
-            $userDetails[] = array(
-                'customerID' => $row['customerID'],
+            $customerDetails[] = array(
+                'supplierID' => $row['supplierID'],
                 'name' => $row['name'],
-                'gender' => $row['gender']
+                'address' => $row['address']
             );
         }
-        return $userDetails;
+        return $customerDetails;
     }
 
     // Call the function and return data
-    $userDetails = getAllCustomerIDs($conn);
+    $customerDetails = getAllSupplierIDs($conn);
     header('Content-Type: application/json');
-    echo json_encode($userDetails);
+    echo json_encode($customerDetails);
     $conn->close();
     exit;
 }
 
 // Check if this is an AJAX request for purchases
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_purchases' && isset($_POST['customerID'])) {
-    $customerID = $_POST['customerID'];
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_orders' && isset($_POST['supplierID'])) {
+    $supplierID = $_POST['supplierID'];
     $servername = "mydb.itap.purdue.edu";
     $username = "g1135081";
     $password = "4i1]4S*Mns83";
@@ -51,9 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $conn = new mysqli($servername, $username, $password, $database);
 
 
-    function getPurchasesByCustomerID($conn, $customerID) {
-        $stmt = $conn->prepare("SELECT * FROM purchase WHERE customerID = ?");
-        $stmt->bind_param("i", $customerID); // 'i' denotes that customerID is an integer
+    function getOrdersBySupplierID($conn, $supplierID) {
+        $stmt = $conn->prepare("SELECT * FROM `order` WHERE supplierID = ?");
+        $stmt->bind_param("i", $supplierID); // 'i' denotes that supplierID is an integer
         $stmt->execute();
         $result = $stmt->get_result();
         if (!$result) {
@@ -61,22 +61,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
             exit;
         }
-        $purchases = array();
+        $orders = array();
         while ($row = $result->fetch_assoc()) {
-            $purchases[] = $row;
+            $orders[] = $row;
         }
         $stmt->close();
-        return $purchases;
+        return $orders;
     }
 
-    $purchases = getPurchasesByCustomerID($conn, $customerID);
+    $orders = getOrdersBySupplierID($conn, $supplierID);
     header('Content-Type: application/json');
-    echo json_encode($purchases); 
+    echo json_encode($orders); 
     $conn->close();
     exit;
 }
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_purchasedetails' && isset($_POST['purchaseID'])) {
-    $purchaseID = $_POST['purchaseID'];
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_orderDetails' && isset($_POST['orderID'])) {
+    $orderID = $_POST['orderID'];
     // Database connection settings
     $servername = "mydb.itap.purdue.edu";
     $username = "g1135081";
@@ -89,31 +89,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         die("Connection failed: " . $conn->connect_error);
     }
     
-    function getAllPurchaseDetailIDs($conn, $purchaseID) {
-        $sql = "SELECT * FROM purchaseDetail WHERE purchaseID = $purchaseID";
+    function getAllOrderDetailIDs($conn, $orderID) {
+        $sql = "SELECT * FROM orderDetail WHERE orderID = $orderID";
         $result = mysqli_query($conn, $sql);
         if (!$result) {
             header('Content-Type: application/json');
             echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
             exit;
         }
-        $purchaseDetails = array();
+        $orderDetails = array();
         while ($row = mysqli_fetch_assoc($result)) {
-            $purchaseDetails[] = array(
-                'purchaseDetailID' => $row['purchaseDetailID'],
-                'quantity' => $row['quantity'],
-                'purchaseID' => $row['purchaseID'],
+            $orderDetails[] = array(
+                'orderDetailID' => $row['orderDetailID'],
+                'orderID' => $row['orderID'],
                 'productID' => $row['productID'],
+                'quantity' => $row['quantity'],
                 'inventoryDetailID' => $row['inventoryDetailID']
             );
         }
-        return $purchaseDetails;
+        return $orderDetails;
     }
 
     // Call the function and return data
-    $purchaseDetails = getAllPurchaseDetailIDs($conn, $purchaseID);
+    $orderDetails = getAllOrderDetailIDs($conn, $orderID);
     header('Content-Type: application/json');
-    echo json_encode($purchaseDetails);
+    echo json_encode($orderDetails);
     $conn->close();
     exit;
 }
@@ -128,11 +128,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     <title>Fetch User Data</title>
 </head>
 <body>
-    <button id="loadDataBtn">Load Cust Data</button> 
-    <button id="loadPurchaseBtn">Load Purchase Data by CustID</button>
-    <input type="number" id="textInput" placeholder="Enter CustomerID Here">
-    <button id="loadPurchaseDetailBtn">Load PurchaseDetail Data by PurchaseID</button>
-    <input type="number" id="purchaseID" placeholder="Enter PurchaseID Here">
+    <button id="loadDataBtn">Load Supplier Data</button> 
+    <button id="loadOrderBtn">Load Order Data by Supplier</button>
+    <input type="number" id="orderID" placeholder="Enter SupplierID Here">
+    <button id="loadOrderDetailBtn">Load OrderDetail Data by OrderID</button>
+    <input type="number" id="purchaseID" placeholder="Enter OrderID Here">
     <button id="showSummaryStats">Show Summary Stats</button>
     <button id="removePlots">Remove Plots</button>
     <div id="dataDisplay"></div>
@@ -146,16 +146,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     let allPurchaseDetailData = [];  // This will store all the purchase detail data
     document.getElementById('loadDataBtn').addEventListener('click', function() {
         if (allUserData.length === 0) {  // Fetch only if data has not been loaded
-            fetchCustomerData();
+            fetchSupplierData();
         } else {
             displayData(allUserData);  // Display all data if already loaded
         }
     });
-    document.getElementById('loadPurchaseBtn').addEventListener('click', function() {
-        fetchPurchaseData();
+    document.getElementById('loadOrderBtn').addEventListener('click', function() {
+        fetchOrderData();
     });
-    document.getElementById('loadPurchaseDetailBtn').addEventListener('click', function() {
-        fetchPurchaseDetailData();
+    document.getElementById('loadOrderDetailBtn').addEventListener('click', function() {
+        fetchOrderDetailData();
     });
     document.getElementById('showSummaryStats').addEventListener('click', function() {
         showSummaryStats();
@@ -166,13 +166,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
 
-    function fetchCustomerData() {
-        fetch('CRMCustomers.php', {
+    function fetchSupplierData() {
+        fetch('CRMSuppliers.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_customers'
+            body: 'action=fetch_suppliers'
         })
         .then(response => response.json())
         .then(data => {
@@ -202,13 +202,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
 
-    function fetchPurchaseData() {
-        fetch('CRMCustomers.php', {
+    function fetchOrderData() {
+        fetch('CRMSuppliers.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_purchases&customerID=' + document.getElementById('textInput').value
+            body: 'action=fetch_orders&supplierID=' + document.getElementById('orderID').value
         })
         .then(response => response.json())
         .then(data => {
@@ -221,13 +221,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         });
     }
 
-    function fetchPurchaseDetailData() {
-        fetch('CRMCustomers.php', {
+    function fetchOrderDetailData() {
+        fetch('CRMSuppliers.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_purchasedetails&purchaseID=' + document.getElementById('purchaseID').value
+            body: 'action=fetch_orderDetails&orderID=' + document.getElementById('purchaseID').value
         })
         .then(response => response.json())
         .then(data => {
@@ -243,76 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     function showSummaryStats() {
         let arr = extractDataFromTable();
         let headers = Object.keys(arr[0]);  
-        if (headers.includes('satisfactionRating')) {
-            let satisfactionRatings = arr.map(item => item.satisfactionRating);
-            let satisfactionCounts = satisfactionRatings.reduce((acc, rating) => {
-                acc[rating] = (acc[rating] || 0) + 1;
-                return acc;
-            }, {});
-            let satisfactionLabels = Object.keys(satisfactionCounts);
-            let satisfactionData = Object.values(satisfactionCounts);
-
-            let ctx = document.getElementById('myChart1').getContext('2d');
-            let myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: satisfactionLabels,
-                    datasets: [{
-                        label: 'Satisfaction Ratings',
-                        data: satisfactionData,
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        if (headers.includes('locationID')) {
-            let locationIDs = arr.map(item => item.locationID);
-            let locationCounts = locationIDs.reduce((acc, location) => {
-                acc[location] = (acc[location] || 0) + 1;
-                return acc;
-            }, {});
-            let locationLabels = Object.keys(locationCounts);
-            let locationData = Object.values(locationCounts);
-
-            let ctx = document.getElementById('myChart2').getContext('2d');
-            let myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: locationLabels,
-                    datasets: [{
-                        label: 'Location IDs',
-                        data: locationData,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {                    
-                    scales: {
-                        y: {                            
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
-            });
-        }
         if (headers.includes('quantity')) {
-            // Create a histogram with total quantity on the y-axis and productID on the x-axis
             let productQuantities = arr.reduce((acc, item) => {
                 acc[item.productID] = (acc[item.productID] || 0) + item.quantity;
                 return acc;
@@ -340,6 +271,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                             ticks: {
                                 stepSize: 1
                             }
+                        }
+                    }
+                }
+            });
+        }
+        if (headers.includes('orderCost')) {
+            let orderCosts = arr.reduce((acc, item) => {
+                let month = item.deliveryDate.split('-')[1];
+                acc[month] = (acc[month] || 0) + item.orderCost;
+                return acc;
+            }, {});
+            let monthLabels = Object.keys(orderCosts);
+            let monthData = Object.values(orderCosts);
+
+            let ctx = document.getElementById('myChart2').getContext('2d');
+            let myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{
+                        label: 'Total Order Cost per Month',
+                        data: monthData,
+                        fill: false,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
                         }
                     }
                 }
