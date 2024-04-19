@@ -5,20 +5,49 @@
     <label for="endDate">End Date:</label>
     <input type="date" id="endDate" name="endDate" required>
     
-    <label for="quantity">Quantity:</label>
-    <input type="number" id="quantity" name="quantity" required min="1">
-    
+    <label for="quantity">Quantity of Products:</label>
+    <input type="number" id="quantityProducts" name="quantityProducts" required min="1">
+    <label for="quantityLocation">Quantity of Locations:</label>
+    <input type="number" id="quantityLocations" name="quantityLocations" required min="1">
+    <label for="quantitySupplier">Quantity of Suppliers:</label>
+    <input type="number" id="quantitySuppliers" name="quantitySuppliers" required min="1">
+    <label for="quantityCustomer">Quantity of Customers:</label>
+    <input type="number" id="quantityCustomers" name="quantityCustomers" required min="1">
+    <label for="quantityEmployees">Quantity of Employees:</label>
+    <input type="number" id="quantityEmployees" name="quantityEmployees" required min="1">
+
     <button type="submit" name="generateData">Generate Data</button>
 </form>
+
+
 
 <script>
     function validateForm() {
         var startDate = document.getElementById('startDate').value;
         var endDate = document.getElementById('endDate').value;
         var quantity = document.getElementById('quantity').value;
-
+        var quantityLocation = document.getElementById('quantityLocation').value;
+        var quantitySupplier = document.getElementById('quantitySupplier').value;
+        var quantityCustomer = document.getElementById('quantityCustomer').value;
+        var quantityEmployees = document.getElementById('quantityEmployees').value;
         // Ensure quantity is greater than 0
         if (quantity <= 0) {
+            alert("Quantity must be greater than 0.");
+            return false;
+        }
+        if (quantityLocation <= 0) {
+            alert("Quantity must be greater than 0.");
+            return false;
+        }
+        if (quantitySupplier <= 0) {
+            alert("Quantity must be greater than 0.");
+            return false;
+        }
+        if (quantityCustomer <= 0) {
+            alert("Quantity must be greater than 0.");
+            return false;
+        }
+        if (quantityEmployees <= 0) {
             alert("Quantity must be greater than 0.");
             return false;
         }

@@ -7,15 +7,30 @@
 </head>
 <body>
 
-<!-- HTML Form for Data Generation -->
-<form action="dataGenerationProjectTest.php" method="post">
-<label for="startDate">Start Date:</label>
-<input type="date" id="startDate" name="startDate" required>
-<label for="endDate">End Date:</label>
-<input type="date" id="endDate" name="endDate" required>
-<label for="quantity">Quantity:</label>
-<input type="number" id="quantity" name="quantity" required>
-<button type="submit" name="generateData">Generate Data</button>
+<!-- HTML Form for Data Generation with Added Fields and Validation -->
+<form action="dataGenerationProjectTest.php" method="post" onsubmit="return validateForm()">
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate" name="startDate" required>
+
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" name="endDate" required>
+    
+    <label for="quantityProducts">Quantity of Products:</label>
+    <input type="number" id="quantityProducts" name="quantityProducts" required min="1">
+
+    <label for="quantityLocations">Quantity of Locations:</label>
+    <input type="number" id="quantityLocations" name="quantityLocations" required min="1">
+
+    <label for="quantitySuppliers">Quantity of Suppliers:</label>
+    <input type="number" id="quantitySuppliers" name="quantitySuppliers" required min="1">
+
+    <label for="quantityCustomers">Quantity of Customers:</label>
+    <input type="number" id="quantityCustomers" name="quantityCustomers" required min="1">
+    
+    <label for="quantityEmployees">Quantity of Employees:</label>
+    <input type="number" id="quantityEmployees" name="quantityEmployees" required min="1">
+
+    <button type="submit" name="generateData">Generate Data</button>
 </form>
 
 <!-- PHP Script for data processing -->
@@ -82,7 +97,13 @@ function insertPurchaseDetailData($conn, $database, $purchaseID, $locationID){
     while ($row = $result->fetch_assoc()) {
         array_push($usedIDs, $row['purchaseDetailID']);
     }
-    for ($i = 1; $i <= rand(1,15); $i++) {
+    $quantityProducts = 1;
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM $database.product");
+    $stmt->execute();
+    $stmt->bind_result($quantityProducts);
+    $stmt->fetch();
+    $stmt->close();
+    for ($i = 1; $i <= rand(1,$quantityProducts); $i++) {
         $productID = getRandomProductId($conn, $usedProducts, $database);
         array_push($usedProducts, $productID);
         $purchaseDetailID = generateRandomInt($usedIDs);
@@ -289,7 +310,7 @@ function insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 
         }
         else {
             if ($table == 'customers') {
-                insertPurchaseData($conn, $bindParams[1], rand(1,10), $startDate, $endDate, $database);
+                insertPurchaseData($conn, $bindParams[1], rand(1,10), $startDate, $endDate, $database, $quantity);
             }
             if ($table == 'supplier') {
                 insertOrderData($conn, $bindParams[1], rand(1,10), $startDate, $endDate);
@@ -349,7 +370,6 @@ function createEnumTables($table, $conn, $id, $database = 'g1135081') {
 // Function to insert data into the order table
 function insertOrderData($conn, $supplierID, $quantity, $startDate, $endDate) {
     $orderIDs = array();
-    #fetch the orderIDs from the order table
     $sql = "SELECT orderID FROM `order`";
     $result = $conn->query($sql);
     if ($result->num_rows > 0) {
@@ -667,18 +687,25 @@ function deleteData($conn, $database) {
 
 
 if (isset($_POST['generateData'])) {
-    $startDate = $_POST['startDate'];
-    $endDate = $_POST['endDate'];
-    $quantity = $_POST['quantity'];
-    $startDate = filter_var($startDate, FILTER_SANITIZE_STRING);
-    $endDate = filter_var($endDate, FILTER_SANITIZE_STRING);
-    $quantity = filter_var($quantity, FILTER_SANITIZE_NUMBER_INT);
+    // Retrieve and sanitize form data
+    $startDate = filter_var($_POST['startDate'], FILTER_SANITIZE_STRING);
+    $endDate = filter_var($_POST['endDate'], FILTER_SANITIZE_STRING);
+    $quantityProducts = filter_var($_POST['quantityProducts'], FILTER_SANITIZE_NUMBER_INT);
+    $quantityLocations = filter_var($_POST['quantityLocations'], FILTER_SANITIZE_NUMBER_INT);
+    $quantitySuppliers = filter_var($_POST['quantitySuppliers'], FILTER_SANITIZE_NUMBER_INT);
+    $quantityCustomers = filter_var($_POST['quantityCustomers'], FILTER_SANITIZE_NUMBER_INT);
+    $quantityEmployees = filter_var($_POST['quantityEmployees'], FILTER_SANITIZE_NUMBER_INT);
+    // Assuming functions for database operations are defined elsewhere
     deleteData($conn, $database);
-    insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'product'); 
-    insertBaseTableData(3, $startDate, $endDate, $conn, $database, 'locations'); 
-    insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'supplier');
-    insertBaseTableData($quantity, $startDate, $endDate, $conn, $database, 'customers'); 
-    insertEmployeeTableData($conn, $database, $quantity, $startDate, $endDate);
+
+    // Insert data based on the quantities for each category
+    insertBaseTableData($quantityProducts, $startDate, $endDate, $conn, $database, 'product');
+    insertBaseTableData($quantityLocations, $startDate, $endDate, $conn, $database, 'locations');
+    insertBaseTableData($quantitySuppliers, $startDate, $endDate, $conn, $database, 'supplier');
+    insertBaseTableData($quantityCustomers, $startDate, $endDate, $conn, $database, 'customers');
+    // Assuming a general function for employees that might need adjustment
+    insertEmployeeTableData($conn, $database, $quantityEmployees, $startDate, $endDate);
 }
+
 mysqli_close($conn);
 ?>

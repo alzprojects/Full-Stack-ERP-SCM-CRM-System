@@ -14,8 +14,6 @@ CREATE TABLE customers
     name VARCHAR(255)
 );
 
-
-
 CREATE TABLE product (
     productID INT PRIMARY KEY,
     name VARCHAR(255),
