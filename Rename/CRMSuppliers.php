@@ -197,16 +197,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         }
     });
     document.getElementById('loadOrderBtn').addEventListener('click', function() {
+        resetCanvas('myChart1');
+        resetCanvas('myChart2');
+        resetCanvas('myChart3');
         fetchOrderData();
     });
     document.getElementById('loadOrderDetailBtn').addEventListener('click', function() {
+        resetCanvas('myChart1');
+        resetCanvas('myChart2');
+        resetCanvas('myChart3');
         fetchOrderDetailData();
     });
     document.getElementById('showSummaryStats').addEventListener('click', function() {
         showSummaryStats();
     });
     document.getElementById('removePlots').addEventListener('click', function() {
-        removePlots();
+        resetCanvas('myChart1');
+        resetCanvas('myChart2');
+        resetCanvas('myChart3');
     });
 
 
@@ -231,20 +239,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
 
-    function removePlots() {
-        if (myChart1) {
-            myChart1.destroy(); // Destroy the chart instance
-            myChart1 = null; // Clear the reference
-        }
-        if (myChart2) {
-            myChart2.destroy(); // Destroy the chart instance
-            myChart2 = null; // Clear the reference
-        }
-        if (myChart3) {
-            myChart3.destroy();
-            myChart3 = null;
+    function resetCanvas(canvasId) {
+        let canvas = document.getElementById(canvasId);
+        if (canvas) {
+            let ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Remove and recreate canvas element to completely reset it
+            let newCanvas = document.createElement('canvas');
+            newCanvas.id = canvasId;
+            newCanvas.width = canvas.width;
+            newCanvas.height = canvas.height;
+            canvas.parentNode.replaceChild(newCanvas, canvas);
         }
     }
+
+    function getFirstAvailableCanvas() {
+        const canvasIds = ['myChart1', 'myChart2', 'myChart3'];
+        for (let id of canvasIds) {
+            let canvas = document.getElementById(id);
+            if (!window.charts || !window.charts[id] || (window.charts[id] && window.charts[id].data.datasets.length === 0)) {
+                console.log(canvas.id);
+                return canvas.id;
+            }
+        }
+        return null;
+    }
+
 
 
     function fetchOrderData() {
@@ -298,12 +319,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 }
                 return acc;
             }, {});
+            let canvas = getFirstAvailableCanvas();
             let productLabels = Object.keys(productQuantities);
             let productData = Object.values(productQuantities);
             if (myChart3) {
                 myChart3.destroy(); // Destroy the chart instance
             }
-            let ctx = document.getElementById('myChart3').getContext('2d');
+            let ctx = document.getElementById(canvas).getContext('2d');
             let myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -337,8 +359,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             // Sort the months numerically (as strings, this works as expected for month numbers)
             let monthLabels = Object.keys(orderCosts).sort((a, b) => a.localeCompare(b));
             let monthData = monthLabels.map(month => orderCosts[month]);
-            console.log(monthLabels, monthData);
-            let ctx = document.getElementById('myChart2').getContext('2d');
+            let canvas = getFirstAvailableCanvas();
+            let ctx = document.getElementById(canvas).getContext('2d');
             let myChart = new Chart(ctx, {
                 type: 'line',
                 data: {

@@ -43,12 +43,50 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="SCM_Style.css">
+    <style>
+        .layout-container {
+            display: flex;
+            flex-wrap: nowrap;
+            height: 100vh; /* Full viewport height */
+        }
+
+        .data-scrollbox {
+            width: 50%;
+            overflow-y: auto;
+            height: calc(100% - 50px); /* Less the height of the top bar */
+            border-right: 1px solid #ccc; /* A separator between data and graphs */
+        }
+
+        .graphs-container {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto; /* Allows scrolling if there are many graphs */
+        }
+
+        .graph-canvas {
+            width: 100%;
+            max-width: 600px; /* Adjust this to fit your needs */
+            height: auto;
+            margin-bottom: 20px; /* Space between graphs */
+        }
+
+        .top-bar {
+            width: 100%;
+            height: 50px; /* Adjust based on your actual content */
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Fetch User Data</title>
 </head>
 
 <body>
+<div class="top-bar"> 
     <button id="loadDataBtn">Load Data</button>
     <div>
     <label for="userTypeSelect">Filter by User Type:</label>
@@ -64,11 +102,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         <input type="date" id="startDateFrom" onchange="filterData()">
         <label for="startDateTo">to</label>
         <input type="date" id="startDateTo" onchange="filterData()">
+        <button id="showSummaryStats">Show Summary Stats</button>
+        <button id="removePlots">Remove Plots</button>
     </div>
-    <button id="showSummaryStats">Show Summary Stats</button>
-    <button id="removePlots">Remove Plots</button>
-    <div id="dataDisplay"></div>
-    <canvas id="summaryChart" width="100" height="100"></canvas>
+</div>
+<div class="layout-container">
+    <div class="data-scrollbox">
+        <div id="dataDisplay"></div>
+    </div>
+    <div class="graphs-container">
+        <canvas id="summaryChart" width="100" height="100"></canvas>
+    </div>
+</div>
 <script>
     let allUserData = [];  // This will store all the user data
     document.getElementById('loadDataBtn').addEventListener('click', function() {
@@ -77,8 +122,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         } else {
             displayData(allUserData);  // Display all data if already loaded
         }
-    document.getElementById('showSummaryStats').addEventListener('click', showSummaryStats);
     });
+    document.getElementById('showSummaryStats').addEventListener('click', showSummaryStats);
+    document.getElementById('removePlots').addEventListener('click', function() {
+        resetCanvas('summaryChart');
+    });
+    function resetCanvas(canvasId) {
+        let canvas = document.getElementById(canvasId);
+        if (canvas) {
+            let ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let newCanvas = document.createElement('canvas');
+            newCanvas.id = canvasId;
+            newCanvas.width = canvas.width;
+            newCanvas.height = canvas.height;   
+            canvas.parentNode.replaceChild(newCanvas, canvas);
+        }
+    }
 
     function fetchData() {
         fetch('CRMUsers.php', {
@@ -137,6 +197,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function filterData() {
+    let summaryChart = window.myChart;
+    let chart = 0;
+        if (summaryChart) {
+            chart = 1;
+        }
+        resetCanvas('summaryChart');
         const userType = document.getElementById('userTypeSelect').value;
         const startDateFrom = document.getElementById('startDateFrom').value;
         const startDateTo = document.getElementById('startDateTo').value;
@@ -154,36 +220,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 (!startDateFrom || userDate >= from) && // Filter by start date if provided
                 (!startDateTo || userDate <= to); // Filter by end date if provided
         });
-
         displayData(filteredData);
+        if (chart) {
+            showSummaryStats();
+        }
     }
-    
+
     function extractDataFromTable() {
-            const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
-            if (!table) {
-                console.log("No table found.");
-                return [];  // Return an empty array if no table is found
-            }
+        const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
+        if (!table) {
+            console.log("No table found.");
+            return [];  // Return an empty array if no table is found
+        }
 
-            const rows = Array.from(table.rows);
-            if (rows.length < 2) {
-                console.log("Not enough data to extract.");
-                return [];  // Need at least two rows to have headers and data
-            }
+        const rows = Array.from(table.rows);
+        if (rows.length < 2) {
+            console.log("Not enough data to extract.");
+            return [];  // Need at least two rows to have headers and data
+        }
 
-            const headers = rows.shift().cells;  // The first row is headers
-            const headerNames = Array.from(headers).map(header => header.textContent);
+        const headers = rows.shift().cells;  // The first row is headers
+        const headerNames = Array.from(headers).map(header => header.textContent);
 
-            const data = rows.map(row => {
-                const cells = Array.from(row.cells);
-                let item = {};
-                cells.forEach((cell, index) => {
-                    item[headerNames[index]] = cell.textContent;
-                });
-                return item;
+        const data = rows.map(row => {
+            const cells = Array.from(row.cells);
+            let item = {};
+            cells.forEach((cell, index) => {
+                item[headerNames[index]] = cell.textContent;
             });
+            return item;
+        });
 
-            return data;
+        return data;
     }
     function showSummaryStats() {
         let arr = extractDataFromTable();

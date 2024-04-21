@@ -124,7 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="styles2.css">
     <style>
         /* Container for the entire layout */
         .layout-container {
@@ -186,15 +185,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         <div id="dataDisplay"></div>
     </div>
     <div class="graphs-container">
-            <canvas id="myChart1" width="100" height="100"></canvas>
-            <canvas id="myChart2" width="100" height="100"></canvas>
-            <canvas id="myChart3" width="100" height="100"></canvas>
-        </div>
+        <canvas id="myChart1" width="100" height="100"></canvas>
+        <canvas id="myChart2" width="100" height="100"></canvas>
+        <canvas id="myChart3" width="100" height="100"></canvas>
+    </div>
     </div>
 <script>
     let allUserData = [];  // This will store all the user data
     let allPurchaseData = [];  // This will store all the purchase data
     let allPurchaseDetailData = [];  // This will store all the purchase detail data
+    let myChart1 = null; // Reference for a chart that might go into myChart1 canvas
+    let myChart2 = null; // Reference for the line chart
+    let myChart3 = null; // Reference for the bar chart
     document.getElementById('loadDataBtn').addEventListener('click', function() {
         if (allUserData.length === 0) {  // Fetch only if data has not been loaded
             fetchCustomerData();
@@ -212,8 +214,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         showSummaryStats();
     });
     document.getElementById('removePlots').addEventListener('click', function() {
-        removePlots();
+        resetCanvas('myChart1');
+        resetCanvas('myChart2');
+        resetCanvas('myChart3');
     });
+
 
 
     function fetchCustomerData() {
@@ -235,21 +240,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         });
     }
 
-
-    function removePlots() {
-        const chart1 = document.getElementById('myChart1');
-        const chart2 = document.getElementById('myChart2');
-        const chart3 = document.getElementById('myChart3');
-        if (chart1) {
-            chart1.remove(); // Remove the first chart canvas
-        }
-        if (chart2) {
-            chart2.remove(); // Remove the second chart canvas
-        }
-        if (chart3) {
-            chart3.remove(); // Remove the third chart canvas
-        }
-    }
 
 
     function fetchPurchaseData() {
@@ -289,8 +279,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             document.getElementById('dataDisplay').innerHTML = '<strong>Failed to load data. Please try again.</strong>';
         });
     }
+    function resetCanvas(canvasId) {
+        let canvas = document.getElementById(canvasId);
+        if (canvas) {
+            let ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Remove and recreate canvas element to completely reset it
+            let newCanvas = document.createElement('canvas');
+            newCanvas.id = canvasId;
+            newCanvas.width = canvas.width;
+            newCanvas.height = canvas.height;
+            canvas.parentNode.replaceChild(newCanvas, canvas);
+        }
+    }
+
+    function getFirstAvailableCanvas() {
+        const canvasIds = ['myChart1', 'myChart2', 'myChart3'];
+        for (let id of canvasIds) {
+            let canvas = document.getElementById(id);
+            // Check if the canvas has a chart instance and if it is empty
+            if (!window.charts || !window.charts[id] || window.charts[id].data.datasets.length === 0) {
+                console.log(canvas.id);
+                return canvas.id;
+            }
+        }
+        return null;
+    }
+
 
     function showSummaryStats() {
+        resetCanvas('myChart1');
+        resetCanvas('myChart2');
+        resetCanvas('myChart3');
         let arr = extractDataFromTable();
         let headers = Object.keys(arr[0]);  
         if (headers.includes('satisfactionRating')) {
@@ -302,7 +323,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             let satisfactionLabels = Object.keys(satisfactionCounts);
             let satisfactionData = Object.values(satisfactionCounts);
 
-            let ctx = document.getElementById('myChart1').getContext('2d');
+            let canvas = getFirstAvailableCanvas();
+            let ctx = document.getElementById(canvas).getContext('2d');
             let myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -335,8 +357,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             }, {});
             let locationLabels = Object.keys(locationCounts);
             let locationData = Object.values(locationCounts);
-
-            let ctx = document.getElementById('myChart2').getContext('2d');
+            let canvas = getFirstAvailableCanvas();
+            let ctx = document.getElementById(canvas).getContext('2d');
             let myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -369,8 +391,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             }, {});
             let productLabels = Object.keys(productQuantities);
             let productData = Object.values(productQuantities);
-
-            let ctx = document.getElementById('myChart3').getContext('2d');
+            let canvas = getFirstAvailableCanvas();
+            let ctx = document.getElementById(canvas).getContext('2d');
             let myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
