@@ -1,6 +1,5 @@
 <?php
-session_start(); // Start the session at the beginning of the script
-
+session_start(); 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Connect to the database
     $servername = "mydb.itap.purdue.edu";
@@ -28,7 +27,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result->num_rows > 0) {
         $_SESSION['loggedin'] = true;
         $_SESSION['username'] = $username;
-        header("location: welcome.php");
+    	$_SESSION['userID'] = $result->fetch_assoc()['userID'];  
+        header("location: homepage.php");
     } else {
         $_SESSION['error'] = 'Invalid username or password.';
         header("location: login.php"); // Ensure the redirect is to this file itself or wherever the form is handled
