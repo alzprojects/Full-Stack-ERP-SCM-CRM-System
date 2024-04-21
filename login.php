@@ -21,7 +21,7 @@ if (isset($_POST['username']) && isset($_POST['password']))
     	$username = $_POST['username'];
     	$password = $_POST['password'];
 
-	$query = "SELECT user_id, username, password, role FROM users WHERE username = '$username' AND password = '$password'";
+	$query = "SELECT userID AS user_id, username, password, user_type AS role FROM users WHERE username = '$username' AND password = '$password'";
 	$statement = $conn->prepare($query);
 	$statement->execute();
 	$result = $statement->fetchAll();
@@ -65,7 +65,18 @@ if (isset($_POST['username']) && isset($_POST['password']))
     }
 </style>
 </head>
-<body>
+<body><?php
+$username = '';
+if(isset($_POST['username']))
+{
+	$username = $_POST['username'];	
+}
+$password = '';
+if(isset($_POST['password']))
+{
+	$password = $_POST['password'];		
+}
+?>
 
 <!-- Logo Container -->
 <div class="logo-container">
@@ -83,9 +94,9 @@ if (isset($_POST['username']) && isset($_POST['password']))
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" class="form-control" value="<?php echo $password; ?>" required>
         </div>
-    <div class="form-group" class="col-md-12">        
+    	<div class="form-group" class="col-md-12">        
             <button type="submit" class="btn btn-success btn-block"><b>Login</b></button>
-
+		<p>
             <div class="form-group">
             <label for="dataNumber">Add Data:</label>
             <input type="number" id="addData" name="addData" class="form-control">
