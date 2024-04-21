@@ -36,9 +36,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["search_terms"])) {
 
     // Database credentials
     $servername = "mydb.itap.purdue.edu";
-    $username = "azimbali";
-    $password = "Max!024902!!";
-    $database = "azimbali";
+    $username = "g1135081";
+    $password = "4i1]4S*Mns83";
+    $database = "g1135081";
 
     // Initialize variable to hold product data
     $inventory_data = array();

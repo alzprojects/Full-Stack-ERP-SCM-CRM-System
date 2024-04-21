@@ -12,15 +12,15 @@ $conn = new PDO("mysql:host=$db_host;dbname=$db_db",$db_user,$db_password);
 if(isset($_GET['userId']))
 {
 	$userId = $_GET['userId'];
-	
-	$query = "SELECT * FROM customers WHERE user_id = '$userId'";
+	$query = "SELECT c.customerID, c.fname, c.lname FROM `customers` c INNER JOIN `enumcustomer` e ON c.customerID = e.customerID WHERE e.userID = $userId";
 	$statement = $conn->prepare($query);
 	$statement->execute();
 	$result = $statement->fetchAll();
 	foreach($result as $row)
 	{
-		$firstName = $row['first_name'];
-		$lastName = $row['last_name'];
+		$fname = $row['fname'];
+		$lname = $row['lname'];
+        $customerID = $row['customerID'];
 	}
 }else{
 	?><script>history.back();</script><?php
@@ -65,7 +65,7 @@ function btn_logout_onclick()
 </script>
 <div class="container">
     <div class="welcome">
-        <p>Welcome, <strong><?php echo 'ID: '.$userId .' ('. strtoupper($firstName) .' '. strtoupper($lastName) .')'; ?></strong></p>
+        <p>Welcome, <strong><?php echo 'Customer ID: '.$customerID .' ('. strtoupper($fname) .' '. strtoupper($lname) .')'; ?></strong></p>
     </div>
     <div class="button-group"><?php
 
