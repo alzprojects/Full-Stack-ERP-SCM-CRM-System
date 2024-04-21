@@ -700,12 +700,46 @@ if (isset($_POST['generateData'])) {
     // Assuming functions for database operations are defined elsewhere
     deleteData($conn, $database);
 
-    // Insert data based on the quantities for each category
     insertBaseTableData($quantityProducts, $startDate, $endDate, $conn, $database, 'product');
     insertBaseTableData($quantityLocations, $startDate, $endDate, $conn, $database, 'locations');
+    // Add Base Employees
+    $userIDs = [1, 2, 3, 4, 5];
+    $fnames = ['John', 'Jane', 'Jim', 'Jill', 'Jack'];
+    $lnames = ['Doe', 'Smith', 'Johnson', 'Williams', 'Brown'];
+    $passwords = ['0000', '1111', '2222', '3333', '4444'];
+    $CRMaccesss = [1, 0, 1, 0, 1];
+    $SCMaccesss = [0, 1, 0, 1, 0];
+    $ERPaccesss = [1, 0, 1, 0, 1];
+    for ($i = 0; $i < 5; $i++) {
+        $userID = $userIDs[$i];
+        $fname = $fnames[$i];
+        $lname = $lnames[$i];
+        $CRMaccess = $CRMaccesss[$i];
+        $SCMaccess = $SCMaccesss[$i];
+        $ERPaccess = $ERPaccesss[$i]; 
+        $username = $fname . $lname;
+        $password = (int)$passwords[$i];
+        $user_type = 'employee';
+
+        $stmt2 = $conn->prepare("INSERT INTO users (userID, start_Date, end_Date, username, password, user_type) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt2->bind_param("isssss", $userID, $startDate, $endDate, $username, $password, $user_type);
+        $stmt2->execute();
+        $stmt2->close();
+
+        $stmt = $conn->prepare("INSERT INTO $database.employees (userID, fname, lname, CRMaccess, SCMaccess, ERPaccess, locationID) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issiiii", $userID, $fname, $lname, $CRMaccess, $SCMaccess, $ERPaccess, $locationID);
+        if ($i == 0 || $i == 2 || $i == 4) {
+            $locationID = NULL;
+        }
+        else {
+            $locationID = getRandomID($conn, 'locations', 'locationID');
+        }
+        $stmt->execute();
+        $stmt->close();
+    }
+    // Insert data based on the quantities for each category
     insertBaseTableData($quantitySuppliers, $startDate, $endDate, $conn, $database, 'supplier');
     insertBaseTableData($quantityCustomers, $startDate, $endDate, $conn, $database, 'customers');
-    // Assuming a general function for employees that might need adjustment
     insertEmployeeTableData($conn, $database, $quantityEmployees, $startDate, $endDate);
 }
 
