@@ -1,4 +1,5 @@
 <?php
+session_start();
 // Check if this is an AJAX request for user data
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_users') {
     // Database connection settings

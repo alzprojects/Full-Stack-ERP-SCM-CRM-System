@@ -1,4 +1,5 @@
 <?php
+session_start();
 // Check if this is an AJAX request for user data
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_customers') {
     // Database connection settings
@@ -42,8 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 }
 
 // Check if this is an AJAX request for purchases
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_purchases' && isset($_POST['customerID'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_purchases' && isset($_POST['customerID']) && isset($_POST['locationID'])) {
     $customerID = $_POST['customerID'];
+    $locationID = $_POST['locationID'];
+    // Database connection settings
     $servername = "mydb.itap.purdue.edu";
     $username = "g1135081";
     $password = "4i1]4S*Mns83";
@@ -52,9 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $conn = new mysqli($servername, $username, $password, $database);
 
 
-    function getPurchasesByCustomerID($conn, $customerID) {
-        $stmt = $conn->prepare("SELECT * FROM purchase WHERE customerID = ?");
-        $stmt->bind_param("i", $customerID); // 'i' denotes that customerID is an integer
+
+    function getPurchasesByCustomerID($conn, $customerID, $locationID) {
+        $stmt = $conn->prepare("SELECT * FROM purchase WHERE customerID = ? AND locationID = ?");
+        $stmt->bind_param("ii", $customerID, $locationID); 
         $stmt->execute();
         $result = $stmt->get_result();
         if (!$result) {
@@ -70,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         return $purchases;
     }
 
-    $purchases = getPurchasesByCustomerID($conn, $customerID);
+    $purchases = getPurchasesByCustomerID($conn, $customerID, $locationID);
     header('Content-Type: application/json');
     echo json_encode($purchases); 
     $conn->close();
@@ -118,6 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $conn->close();
     exit;
 }
+
 
 ?>
 <!DOCTYPE html>
@@ -240,15 +245,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         });
     }
 
-
-
     function fetchPurchaseData() {
+        let locationId = <?php echo json_encode($_SESSION['locationID']); ?>;
         fetch('CRMCustomers.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_purchases&customerID=' + document.getElementById('textInput').value
+            body: `action=fetch_purchases&customerID=${document.getElementById('textInput').value}&locationID=${locationId}`
         })
         .then(response => response.json())
         .then(data => {
@@ -267,7 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_purchasedetails&purchaseID=' + document.getElementById('purchaseID').value
+            body: `action=fetch_purchasedetails&purchaseID=${document.getElementById('purchaseID').value}`
         })
         .then(response => response.json())
         .then(data => {
@@ -279,6 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             document.getElementById('dataDisplay').innerHTML = '<strong>Failed to load data. Please try again.</strong>';
         });
     }
+
     function resetCanvas(canvasId) {
         let canvas = document.getElementById(canvasId);
         if (canvas) {

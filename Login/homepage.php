@@ -154,14 +154,13 @@ $_SESSION['locationID'] = $locationID;
     <div class="container">
         <h2>Micromanagement Central Yeehaw</h2>
         <div class="navbar">
-            <a href="homePage.html">Home</a>
-            <a href="login.html">Login</a>
+            <a href="homePage.html?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Home</a>
+            <a href="login.html?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Login</a>
         </div>
-        <h2 style="text-align: center;"><?php echo "Welcome, " . $fname . " " . $lname . "!"; ?></h2>
         <div class="buttons">
-        <a href="../SCM/SCMInventory.php"><button>SCM</button></a>
-            <a href="../Project/ERP_Inventory.php"><button>ERP</button></a>
-            <a href="../Rename/CRMCustomers.php"><button>CRM</button></a>
+            <a href="../SCM/SCMInventory.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>"><button>SCM</button></a>
+            <a href="../Project/ERP_Inventory.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>"><button>ERP</button></a>
+            <a href="../Rename/CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>"><button>CRM</button></a>
         </div>
     </div>    
     <script src="script.js"></script>
