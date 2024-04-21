@@ -167,6 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         </div>
     </div>
 <script>
+    let fileName = 'CRMSuppliers_noPlots.php';
     let allUserData = [];  // This will store all the user data
     let allPurchaseData = [];  // This will store all the purchase data
     let allPurchaseDetailData = [];  // This will store all the purchase detail data
@@ -187,13 +188,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         showSummaryStats();
     });
     document.getElementById('removePlots').addEventListener('click', function() {
-        removePlots();
+        resetCanvas('myChart1');
+        resetCanvas('myChart2');
+        resetCanvas('myChart3');
     });
 
 
 
     function fetchSupplierData() {
-        fetch('CRMSuppliers.php', {
+        fetch(fileName, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -212,24 +215,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
 
-    function removePlots() {
-        const chart1 = document.getElementById('myChart1');
-        const chart2 = document.getElementById('myChart2');
-        const chart3 = document.getElementById('myChart3');
-        if (chart1) {
-            chart1.remove(); // Remove the first chart canvas
-        }
-        if (chart2) {
-            chart2.remove(); // Remove the second chart canvas
-        }
-        if (chart3) {
-            chart3.remove(); // Remove the third chart canvas
+    function resetCanvas(canvasId) {
+        let canvas = document.getElementById(canvasId);
+        if (canvas) {
+            let ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Remove and recreate canvas element to completely reset it
+            let newCanvas = document.createElement('canvas');
+            newCanvas.id = canvasId;
+            newCanvas.width = canvas.width;
+            newCanvas.height = canvas.height;
+            canvas.parentNode.replaceChild(newCanvas, canvas);
         }
     }
 
 
     function fetchOrderData() {
-        fetch('CRMSuppliers.php', {
+        fetch(fileName, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -239,6 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         .then(response => response.json())
         .then(data => {
             allPurchaseData = data;  // Store fetched data
+            console.log(allPurchaseData);
             displayData(allPurchaseData);  // Display all data
         })
         .catch(error => {
@@ -248,7 +252,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
     function fetchOrderDetailData() {
-        fetch('CRMSuppliers.php', {
+        fetch(fileName, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -268,16 +272,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
     function showSummaryStats() {
         let arr = extractDataFromTable();
-        let headers = Object.keys(arr[0]);  
+        let headers = Object.keys(arr[0]);
         if (headers.includes('quantity')) {
+            console.log(arr);
             let productQuantities = arr.reduce((acc, item) => {
-                acc[item.productID] = (acc[item.productID] || 0) + item.quantity;
+                // Ensure item.quantity is treated as a number
+                let quantity = Number(item.quantity);
+                if (!isNaN(quantity)) {
+                    acc[item.productID] = (acc[item.productID] || 0) + quantity;
+                }
                 return acc;
             }, {});
+            let canvas = getFirstAvailableCanvas();
             let productLabels = Object.keys(productQuantities);
             let productData = Object.values(productQuantities);
-
-            let ctx = document.getElementById('myChart3').getContext('2d');
+            let ctx = document.getElementById(canvas).getContext('2d');
             let myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -295,7 +304,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1
+                                stepSize: 50
                             }
                         }
                     }
@@ -305,13 +314,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         if (headers.includes('orderCost')) {
             let orderCosts = arr.reduce((acc, item) => {
                 let month = item.deliveryDate.split('-')[1];
-                acc[month] = (acc[month] || 0) + item.orderCost;
+                acc[month] = (acc[month] || 0) + Number(item.orderCost); // Using Number() to ensure it's treated as a number
                 return acc;
             }, {});
-            let monthLabels = Object.keys(orderCosts);
-            let monthData = Object.values(orderCosts);
-
-            let ctx = document.getElementById('myChart2').getContext('2d');
+            // Sort the months numerically (as strings, this works as expected for month numbers)
+            let monthLabels = Object.keys(orderCosts).sort((a, b) => a.localeCompare(b));
+            let monthData = monthLabels.map(month => orderCosts[month]);
+            let canvas = getFirstAvailableCanvas();
+            let ctx = document.getElementById(canvas).getContext('2d');
             let myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -335,8 +345,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         }
     }
    
+    function getFirstAvailableCanvas() {
+        const canvasIds = ['myChart1', 'myChart2', 'myChart3'];
+        for (let id of canvasIds) {
+            let canvas = document.getElementById(id);
+            if (!window.charts || !window.charts[id] || (window.charts[id] && window.charts[id].data.datasets.length === 0)) {
+                console.log(canvas.id);
+                return canvas.id;
+            }
+        }
+        return null;
+    }
 
     function displayData(data) {
+        resetCanvas('myChart1');
+        resetCanvas('myChart2');
+        resetCanvas('myChart3');
         const display = document.getElementById('dataDisplay');
         display.innerHTML = '';  // Clear previous data
         const table = document.createElement('table');
@@ -369,31 +393,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
     
     function extractDataFromTable() {
-    const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
-    if (!table) {
-        console.log("No table found.");
-        return [];  // Return an empty array if no table is found
-    }
+        const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
+        if (!table) {
+            console.log("No table found.");
+            return [];  // Return an empty array if no table is found
+        }
 
-    const rows = Array.from(table.rows);
-    if (rows.length < 2) {
-        console.log("Not enough data to extract.");
-        return [];  // Need at least two rows to have headers and data
-    }
+        const rows = Array.from(table.rows);
+        if (rows.length < 2) {
+            console.log("Not enough data to extract.");
+            return [];  // Need at least two rows to have headers and data
+        }
 
-    const headers = rows.shift().cells;  // The first row is headers
-    const headerNames = Array.from(headers).map(header => header.textContent);
+        const headers = rows.shift().cells;  // The first row is headers
+        const headerNames = Array.from(headers).map(header => header.textContent);
 
-    const data = rows.map(row => {
-        const cells = Array.from(row.cells);
-        let item = {};
-        cells.forEach((cell, index) => {
-            item[headerNames[index]] = cell.textContent;
+        const data = rows.map(row => {
+            const cells = Array.from(row.cells);
+            let item = {};
+            cells.forEach((cell, index) => {
+                item[headerNames[index]] = cell.textContent;
+            });
+            return item;
         });
-        return item;
-    });
 
-    return data;
+        return data;
 }
 
 
