@@ -43,7 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="styles2.css">
+    <link rel="stylesheet" type="text/css" href="SCM_Style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Fetch User Data</title>
 </head>
 
@@ -64,8 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         <label for="startDateTo">to</label>
         <input type="date" id="startDateTo" onchange="filterData()">
     </div>
+    <button id="showSummaryStats">Show Summary Stats</button>
+    <button id="removePlots">Remove Plots</button>
     <div id="dataDisplay"></div>
-
+    <canvas id="summaryChart" width="100" height="100"></canvas>
 <script>
     let allUserData = [];  // This will store all the user data
     document.getElementById('loadDataBtn').addEventListener('click', function() {
@@ -74,6 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         } else {
             displayData(allUserData);  // Display all data if already loaded
         }
+    document.getElementById('showSummaryStats').addEventListener('click', showSummaryStats);
     });
 
     function fetchData() {
@@ -153,6 +157,85 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
         displayData(filteredData);
     }
+    
+    function extractDataFromTable() {
+            const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
+            if (!table) {
+                console.log("No table found.");
+                return [];  // Return an empty array if no table is found
+            }
+
+            const rows = Array.from(table.rows);
+            if (rows.length < 2) {
+                console.log("Not enough data to extract.");
+                return [];  // Need at least two rows to have headers and data
+            }
+
+            const headers = rows.shift().cells;  // The first row is headers
+            const headerNames = Array.from(headers).map(header => header.textContent);
+
+            const data = rows.map(row => {
+                const cells = Array.from(row.cells);
+                let item = {};
+                cells.forEach((cell, index) => {
+                    item[headerNames[index]] = cell.textContent;
+                });
+                return item;
+            });
+
+            return data;
+    }
+    function showSummaryStats() {
+        let arr = extractDataFromTable();
+        if (!arr.length) {
+            console.error("No data to display stats for.");
+            return;  // Exit if no data is available
+        }
+
+        // Check if 'date' or 'start_date' property exists on the first item
+        let dateProp = arr[0].date ? 'date' : (arr[0].start_date ? 'start_date' : null);
+        if (!dateProp) {
+            console.error("Date property is missing from the data.");
+            return;  // Exit if the required date property is missing
+        }
+
+        let data = {};
+        arr.forEach(item => {
+            if (!item[dateProp]) {
+                console.error("Date value is missing from an item.");
+                return;  // Skip items without a date value
+            }
+            let date = item[dateProp].slice(0, 7);  // Extract yyyy-mm from yyyy-mm-dd
+            data[date] = (data[date] || 0) + 1;
+        });
+
+        // Proceed with chart generation
+        let ctx = document.getElementById('summaryChart').getContext('2d');
+        if (window.myChart) {
+            window.myChart.destroy(); // Destroy the existing chart instance if present
+        }
+        window.myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'User IDs created per month',
+                    data: Object.values(data),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
 
 </script>
 </body>

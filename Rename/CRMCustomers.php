@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
     
     function getAllCustomerIDs($conn) {
-        $sql = "SELECT customerID, gender, name FROM customers";
+        $sql = "SELECT customerID, gender, fname, lname FROM customers";
         $result = mysqli_query($conn, $sql);
         if (!$result) {
             header('Content-Type: application/json');
@@ -25,7 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         while ($row = mysqli_fetch_assoc($result)) {
             $userDetails[] = array(
                 'customerID' => $row['customerID'],
-                'name' => $row['name'],
+                'fname' => $row['fname'],
+                'lname' => $row['lname'],
                 'gender' => $row['gender']
             );
         }
@@ -124,22 +125,72 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="styles2.css">
+    <style>
+        /* Container for the entire layout */
+        .layout-container {
+            display: flex;
+            flex-wrap: nowrap;
+            height: 100vh; /* Using full view height */
+        }
+
+        /* Container for the scrollable data box */
+        .data-scrollbox {
+            width: 50%;
+            overflow-y: auto;
+            height: calc(100% - 50px); /* Adjust height, subtracting the top bar height */
+            border-right: 1px solid #ccc; /* Optional separator */
+        }
+
+        .graphs-container {
+            width: 50%; /* Maintain the width as before */
+            height: calc(100% - 50px); /* Adjust if necessary */
+            display: flex;
+            flex-direction: column; /* This makes the children stack vertically */
+            align-items: center; /* This centers the graphs horizontally */
+            justify-content: flex-start; /* This aligns the graphs to the top of the container */
+            overflow-y: auto; /* Adds scrolling if graphs exceed the container height */
+        }
+
+        .graph-canvas {
+            width: 100%; /* Full width of the container */
+            max-width: 600px; /* Maximum width, adjust as necessary */
+            height: auto; /* Keep the aspect ratio */
+            margin-bottom: 20px; /* Adds space between graphs */
+        }
+
+        /* Top bar containing buttons and inputs */
+        .top-bar {
+            width: 100%;
+            height: 50px; /* Adjust based on content */
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            border-bottom: 1px solid #ccc; /* Optional separator */
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Fetch User Data</title>
 </head>
 <body>
-    <button id="loadDataBtn">Load Cust Data</button> 
-    <button id="loadPurchaseBtn">Load Purchase Data by CustID</button>
-    <input type="number" id="textInput" placeholder="Enter CustomerID Here">
-    <button id="loadPurchaseDetailBtn">Load PurchaseDetail Data by PurchaseID</button>
-    <input type="number" id="purchaseID" placeholder="Enter PurchaseID Here">
-    <button id="showSummaryStats">Show Summary Stats</button>
-    <button id="removePlots">Remove Plots</button>
-    <div id="dataDisplay"></div>
-    <canvas id="myChart1" width="100" height="100"></canvas>
-    <canvas id="myChart2" width="100" height="100"></canvas>
-    <canvas id="myChart3" width="100" height="100"></canvas>
-
+    <div class="top-bar">
+        <button id="loadDataBtn">Load Cust Data</button> 
+        <button id="loadPurchaseBtn">Load Purchase Data by CustID</button>
+        <input type="number" id="textInput" placeholder="Enter CustomerID Here">
+        <button id="loadPurchaseDetailBtn">Load PurchaseDetail Data by PurchaseID</button>
+        <input type="number" id="purchaseID" placeholder="Enter PurchaseID Here">
+        <button id="showSummaryStats">Show Summary Stats</button>
+        <button id="removePlots">Remove Plots</button>
+    </div>
+    <div class="layout-container">
+    <div class="data-scrollbox">
+        <div id="dataDisplay"></div>
+    </div>
+    <div class="graphs-container">
+            <canvas id="myChart1" width="100" height="100"></canvas>
+            <canvas id="myChart2" width="100" height="100"></canvas>
+            <canvas id="myChart3" width="100" height="100"></canvas>
+        </div>
+    </div>
 <script>
     let allUserData = [];  // This will store all the user data
     let allPurchaseData = [];  // This will store all the purchase data
@@ -163,7 +214,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     document.getElementById('removePlots').addEventListener('click', function() {
         removePlots();
     });
-
 
 
     function fetchCustomerData() {
@@ -381,32 +431,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
     
     function extractDataFromTable() {
-    const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
-    if (!table) {
-        console.log("No table found.");
-        return [];  // Return an empty array if no table is found
-    }
+        const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
+        if (!table) {
+            console.log("No table found.");
+            return [];  // Return an empty array if no table is found
+        }
 
-    const rows = Array.from(table.rows);
-    if (rows.length < 2) {
-        console.log("Not enough data to extract.");
-        return [];  // Need at least two rows to have headers and data
-    }
+        const rows = Array.from(table.rows);
+        if (rows.length < 2) {
+            console.log("Not enough data to extract.");
+            return [];  // Need at least two rows to have headers and data
+        }
 
-    const headers = rows.shift().cells;  // The first row is headers
-    const headerNames = Array.from(headers).map(header => header.textContent);
+        const headers = rows.shift().cells;  // The first row is headers
+        const headerNames = Array.from(headers).map(header => header.textContent);
 
-    const data = rows.map(row => {
-        const cells = Array.from(row.cells);
-        let item = {};
-        cells.forEach((cell, index) => {
-            item[headerNames[index]] = cell.textContent;
+        const data = rows.map(row => {
+            const cells = Array.from(row.cells);
+            let item = {};
+            cells.forEach((cell, index) => {
+                item[headerNames[index]] = cell.textContent;
+            });
+            return item;
         });
-        return item;
-    });
 
-    return data;
-}
+        return data;
+    }
 
 
 </script>

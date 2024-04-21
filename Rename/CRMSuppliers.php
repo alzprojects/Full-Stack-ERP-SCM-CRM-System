@@ -82,9 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $username = "g1135081";
     $password = "4i1]4S*Mns83";
     $database = "g1135081";
-
     $conn = new mysqli($servername, $username, $password, $database);
-
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
@@ -100,11 +98,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         $orderDetails = array();
         while ($row = mysqli_fetch_assoc($result)) {
             $orderDetails[] = array(
-                'orderDetailID' => $row['orderDetailID'],
                 'orderID' => $row['orderID'],
                 'productID' => $row['productID'],
                 'quantity' => $row['quantity'],
-                'inventoryDetailID' => $row['inventoryDetailID']
+                'inventoryDetailID' => $row['inventoryDetailID'],
+                'orderDetailID' => $row['orderDetailID']
             );
         }
         return $orderDetails;
@@ -123,27 +121,74 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="styles2.css">
+    <style>
+        .layout-container {
+            display: flex;
+            flex-wrap: nowrap;
+            height: 100vh; /* Full viewport height */
+        }
+
+        .data-scrollbox {
+            width: 50%;
+            overflow-y: auto;
+            height: calc(100% - 50px); /* Less the height of the top bar */
+            border-right: 1px solid #ccc; /* A separator between data and graphs */
+        }
+
+        .graphs-container {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto; /* Allows scrolling if there are many graphs */
+        }
+
+        .graph-canvas {
+            width: 100%;
+            max-width: 600px; /* Adjust this to fit your needs */
+            height: auto;
+            margin-bottom: 20px; /* Space between graphs */
+        }
+
+        .top-bar {
+            width: 100%;
+            height: 50px; /* Adjust based on your actual content */
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Fetch User Data</title>
 </head>
 <body>
-    <button id="loadDataBtn">Load Supplier Data</button> 
-    <button id="loadOrderBtn">Load Order Data by Supplier</button>
-    <input type="number" id="orderID" placeholder="Enter SupplierID Here">
-    <button id="loadOrderDetailBtn">Load OrderDetail Data by OrderID</button>
-    <input type="number" id="purchaseID" placeholder="Enter OrderID Here">
-    <button id="showSummaryStats">Show Summary Stats</button>
-    <button id="removePlots">Remove Plots</button>
-    <div id="dataDisplay"></div>
-    <canvas id="myChart1" width="100" height="100"></canvas>
-    <canvas id="myChart2" width="100" height="100"></canvas>
-    <canvas id="myChart3" width="100" height="100"></canvas>
-
-<script>
+    <div class="top-bar">
+        <button id="loadDataBtn">Load Supplier Data</button> 
+        <button id="loadOrderBtn">Load Order Data by Supplier</button>
+        <input type="number" id="orderID" placeholder="Enter SupplierID Here">
+        <button id="loadOrderDetailBtn">Load OrderDetail Data by OrderID</button>
+        <input type="number" id="purchaseID" placeholder="Enter OrderID Here">
+        <button id="showSummaryStats">Show Summary Stats</button>
+        <button id="removePlots">Remove Plots</button>
+    </div>
+    <div class="layout-container">
+        <div class="data-scrollbox">
+            <div id="dataDisplay"></div>
+        </div>
+        <div class="graphs-container">
+            <canvas id="myChart1" width="100" height="100"></canvas>
+            <canvas id="myChart2" width="100" height="100"></canvas>
+            <canvas id="myChart3" width="100" height="100"></canvas>
+        </div>
+    </div>
+<script>    
     let allUserData = [];  // This will store all the user data
     let allPurchaseData = [];  // This will store all the purchase data
     let allPurchaseDetailData = [];  // This will store all the purchase detail data
+    let myChart1 = null; // Reference for a chart that might go into myChart1 canvas
+    let myChart2 = null; // Reference for the line chart
+    let myChart3 = null; // Reference for the bar chart
     document.getElementById('loadDataBtn').addEventListener('click', function() {
         if (allUserData.length === 0) {  // Fetch only if data has not been loaded
             fetchSupplierData();
@@ -187,17 +232,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function removePlots() {
-        const chart1 = document.getElementById('myChart1');
-        const chart2 = document.getElementById('myChart2');
-        const chart3 = document.getElementById('myChart3');
-        if (chart1) {
-            chart1.remove(); // Remove the first chart canvas
+        if (myChart1) {
+            myChart1.destroy(); // Destroy the chart instance
+            myChart1 = null; // Clear the reference
         }
-        if (chart2) {
-            chart2.remove(); // Remove the second chart canvas
+        if (myChart2) {
+            myChart2.destroy(); // Destroy the chart instance
+            myChart2 = null; // Clear the reference
         }
-        if (chart3) {
-            chart3.remove(); // Remove the third chart canvas
+        if (myChart3) {
+            myChart3.destroy();
+            myChart3 = null;
         }
     }
 
@@ -242,15 +287,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
     function showSummaryStats() {
         let arr = extractDataFromTable();
-        let headers = Object.keys(arr[0]);  
+        let headers = Object.keys(arr[0]);
         if (headers.includes('quantity')) {
+            console.log(arr);
             let productQuantities = arr.reduce((acc, item) => {
-                acc[item.productID] = (acc[item.productID] || 0) + item.quantity;
+                // Ensure item.quantity is treated as a number
+                let quantity = Number(item.quantity);
+                if (!isNaN(quantity)) {
+                    acc[item.productID] = (acc[item.productID] || 0) + quantity;
+                }
                 return acc;
             }, {});
             let productLabels = Object.keys(productQuantities);
             let productData = Object.values(productQuantities);
-
+            if (myChart3) {
+                myChart3.destroy(); // Destroy the chart instance
+            }
             let ctx = document.getElementById('myChart3').getContext('2d');
             let myChart = new Chart(ctx, {
                 type: 'bar',
@@ -269,7 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1
+                                stepSize: 50
                             }
                         }
                     }
@@ -279,12 +331,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         if (headers.includes('orderCost')) {
             let orderCosts = arr.reduce((acc, item) => {
                 let month = item.deliveryDate.split('-')[1];
-                acc[month] = (acc[month] || 0) + item.orderCost;
+                acc[month] = (acc[month] || 0) + Number(item.orderCost); // Using Number() to ensure it's treated as a number
                 return acc;
             }, {});
-            let monthLabels = Object.keys(orderCosts);
-            let monthData = Object.values(orderCosts);
-
+            // Sort the months numerically (as strings, this works as expected for month numbers)
+            let monthLabels = Object.keys(orderCosts).sort((a, b) => a.localeCompare(b));
+            let monthData = monthLabels.map(month => orderCosts[month]);
+            console.log(monthLabels, monthData);
             let ctx = document.getElementById('myChart2').getContext('2d');
             let myChart = new Chart(ctx, {
                 type: 'line',
@@ -343,33 +396,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
     
     function extractDataFromTable() {
-    const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
-    if (!table) {
-        console.log("No table found.");
-        return [];  // Return an empty array if no table is found
-    }
+        const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
+        if (!table) {
+            console.log("No table found.");
+            return [];  // Return an empty array if no table is found
+        }
 
-    const rows = Array.from(table.rows);
-    if (rows.length < 2) {
-        console.log("Not enough data to extract.");
-        return [];  // Need at least two rows to have headers and data
-    }
+        const rows = Array.from(table.rows);
+        if (rows.length < 2) {
+            console.log("Not enough data to extract.");
+            return [];  // Need at least two rows to have headers and data
+        }
 
-    const headers = rows.shift().cells;  // The first row is headers
-    const headerNames = Array.from(headers).map(header => header.textContent);
+        const headers = rows.shift().cells;  // The first row is headers
+        const headerNames = Array.from(headers).map(header => header.textContent);
 
-    const data = rows.map(row => {
-        const cells = Array.from(row.cells);
-        let item = {};
-        cells.forEach((cell, index) => {
-            item[headerNames[index]] = cell.textContent;
+        const data = rows.map(row => {
+            const cells = Array.from(row.cells);
+            let item = {};
+            cells.forEach((cell, index) => {
+                item[headerNames[index]] = cell.textContent;
+            });
+            return item;
         });
-        return item;
-    });
 
-    return data;
+        return data;
 }
-
 
 </script>
 </body>

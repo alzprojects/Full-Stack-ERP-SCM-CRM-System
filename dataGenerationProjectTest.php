@@ -406,8 +406,8 @@ function insertOrderData($conn, $supplierID, $quantity, $startDate, $endDate) {
 
         // Close the statement
         $stmt->close();
+        insertOrderDetailData($conn, $orderID, $startDate, $endDate);
     }
-    insertOrderDetailData($conn, $orderID, $startDate, $endDate);
 }
 // Function to insert data into the orderDetail table
 function insertOrderDetailData($conn, $orderID, $startDate, $endDate) {
@@ -419,7 +419,7 @@ function insertOrderDetailData($conn, $orderID, $startDate, $endDate) {
             array_push($orderDetailIDs, $row['orderDetailID']);
         }
     }
-    for ($i = 1; $i <= rand(1,10); $i++) {
+    for ($i = 1; $i <= rand(3,20); $i++) {
         $productID = getRandomID($conn, 'product', 'productID');
         $inventoryDetailID = getRandomID($conn, 'inventoryDetail', 'inventoryDetailID');
         $orderDetailID = generateRandomInt($orderDetailIDs);
