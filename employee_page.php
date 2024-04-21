@@ -11,21 +11,20 @@ $conn = new PDO("mysql:host=$db_host;dbname=$db_db",$db_user,$db_password);
 
 if(isset($_GET['userId']))
 {
-	
 	$userId = $_GET['userId'];
 	
-	$query = "SELECT * FROM employees WHERE user_id = '$userId'";
+	$query = "SELECT * FROM employees WHERE userID = '$userId'";
 	$statement = $conn->prepare($query);
 	$statement->execute();
 	$result = $statement->fetchAll();
 	foreach($result as $row)
 	{
-		$firstName = $row['first_name'];
-		$lastName = $row['last_name'];
-		$SCMAccess = $row['AccessSCM'];
-		$ERPAccess = $row['AccessERP'];
-		$CRMAccess = $row['AccessCRM'];
-		$location = $row['location_id'];
+		$firstName = $row['fname'];
+		$lastName = $row['lname'];
+		$SCMAccess = $row['SCMAccess'];
+		$ERPAccess = $row['ERPAccess'];
+		$CRMAccess = $row['CRMAccess'];
+		$location = $row['locationID'];
 	}
 }else{
 	?><script>history.back();</script><?php
@@ -63,7 +62,6 @@ if(isset($_GET['userId']))
 <div class="logo-container">
     <img src="logo.png" alt="Website Logo" style="width: 100px;"> 
 </div>
-
 
 <script>
 function btn_logout_onclick() 
