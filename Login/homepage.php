@@ -159,13 +159,11 @@ $_SESSION['locationID'] = $locationID;
         </div>
         <h2 style="text-align: center;"><?php echo "Welcome, " . $fname . " " . $lname . "!"; ?></h2>
         <div class="buttons">
-            <a href="ERP_finances.html"><button>ERP</button></a>
-            <a href="SCM.html"><button>SCM</button></a>
-            <a href="CRM.html"><button>CRM</button></a>
+        <a href="../SCM/SCMInventory.php"><button>SCM</button></a>
+            <a href="../Project/ERP_Inventory.php"><button>ERP</button></a>
+            <a href="../Rename/CRMCustomers.php"><button>CRM</button></a>
         </div>
-    </div>
-    <!-- Additional content here -->
-    
+    </div>    
     <script src="script.js"></script>
 </body>
 </html>
