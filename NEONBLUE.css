@@ -1,0 +1,194 @@
+body {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; /* Change the font family */
+    background-color: black; /* Change the background color */
+    margin: 0;
+    padding: 0;
+    font-size: 16px; /* Change the font size */
+    color: white; /* Change the font color */
+}
+
+/* Logo */
+.logo {
+    width: 80px;
+    height: 80px;
+    margin-right: 10px;
+}
+
+.erp-finances {
+    clear: both; /* This clears any floated elements (like your navbar) and forces the "ERP Finances" text onto a new line */
+}
+
+.container {
+    width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: rgba(2, 0, 47, 0.341);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: black;
+    margin: 20px;
+    padding: 0;
+    font-size: 32px; /* Change the font size */
+    color: rgb(50, 224, 224); /* Change the font color */
+}
+
+h3 {
+    color: black;
+    background-color: ; /* Change the background color */
+    margin: 20px;
+    padding: 0;
+    font-size: 30px; /* Change the font size */
+    color: white; /* Change the font color */
+}
+
+h4 {
+    color: black;
+    background-color: ; /* Change the background color */
+    margin: 20px;
+    padding: 0;
+    font-size: 24px; /* Change the font size */
+    color: white; /* Change the font color */
+}
+
+/* Dark mode */
+.dark-mode input[type="file"],
+.dark-mode button {
+    color: white; /* Change the font color for dark mode */
+}
+
+/* Light mode */
+.light-mode input[type="file"],
+.light-mode button {
+    color: black; /* Change the font color for light mode */
+}
+
+canvas {
+    margin-bottom: 20px;
+}
+
+.navbar a, .navbar .dropdown .dropbtn {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 12px 10px; /* Reduce padding to fit more items on the same row */
+    text-decoration: none;
+    width: 12%; /* Adjust the width to fit all items on the same row */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    font-size: 16px; /* Change the font size */
+}
+
+/* Adjust the width of the dropdown button */
+.navbar .dropdown .dropbtn {
+    width: auto;
+}
+
+/* Change the color of links on hover */
+.navbar a:hover, .navbar .dropdown .dropbtn:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+/* Add your CSS styles here */
+
+/* Common button style */
+button, .btn {
+    background-color: transparent;
+    border: 1px solid white;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    display: inline-block;
+    margin: 10px;
+    cursor: pointer;
+}
+
+/* Back to Homepage and Logout buttons */
+a button, .btn.btn-danger.btn-custom {
+    background-color: transparent;
+    border: 1px solid white; /* Add border for visibility */
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    display: inline-block;
+    margin: 10px;
+    cursor: pointer;
+}
+
+/* Light mode Back to Homepage and Logout buttons */
+body.light-mode a button, body.light-mode .btn.btn-danger.btn-custom {
+    color: black; /* Change text color for light mode */
+    border-color: black; /* Change border color for light mode */
+}
+
+/* Dark mode Back to Homepage and Logout buttons */
+body.dark-mode a button, body.dark-mode .btn.btn-danger.btn-custom {
+    color: white; /* Change text color for dark mode */
+    border-color: white; /* Change border color for dark mode */
+}
+
+/* Colorblind mode Back to Homepage and Logout buttons */
+.colorblind-mode a button, .colorblind-mode .btn.btn-danger.btn-custom {
+    background-color: white;
+    border-color: black; /* Change border color for colorblind mode */
+    color: black;
+}
+
+#smallContainer {
+    display: flex;
+    flex-direction: row;
+    margin: 5px; /* Add margin to smallContainer */
+}
+
+#leftContainer {
+    border: 1px solid black;
+    flex-grow: 1.2; /* Adjust flex-grow value */
+    margin-right: 5px;
+    flex-basis: 0;
+}
+
+#centerContainer {
+    border: 1px solid black;
+    flex-grow: 2; /* Adjust flex-grow value */
+    margin: 0 5px; /* Adjust margin */
+    flex-basis: 0;
+}
+
+#rightContainer {
+    border: 1px solid black;
+    flex-grow: 0.5; /* Adjust flex-grow value */
+    margin-left: 5px;
+    flex-basis: 0;
+}
+
+/* Dark mode */
+.dark-mode .btn.btn-danger.btn-custom {
+    color: white; /* Change the font color for dark mode */
+}
+
+/* Light mode */
+.light-mode .btn.btn-danger.btn-custom {
+    color: black; /* Change the font color for light mode */
+}
+
+table {
+    width: 100%;
+    font-size: 10px;
+    table-layout: fixed;
+    border-collapse: collapse;
+    color: white; /* Change the font color */
+    border-color: white; /* Change the border color */
+}
+
+table, th, td {
+    border: 1px solid white; /* Change the border color */
+    font-size: 12px; /* Change the font size */
+    color: white; /* Change the font color */
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+}
