@@ -100,8 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 <a href="homePage.html">Home</a>
                 <a href="login.html">Login</a>
                 <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
-            <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
-            <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
+                <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
+                <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
             </div>
         <div id ="smallContainer">
         <div id ="leftContainer">

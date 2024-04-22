@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
             </div>
         <div id ="smallContainer">
-            <div id="leftContainer">
+            <div id="altleftContainer">
                 Please enter a supplier ID, and then choose if you would like to see
                 the supplier data or the purchase data for that customer.
                 <br></br>    

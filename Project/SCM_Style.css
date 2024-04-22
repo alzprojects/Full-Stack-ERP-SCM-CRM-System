@@ -127,17 +127,17 @@ canvas {
     max-height: 1200px;
     min-width: 600px;
     flex-grow: 1; /* Adjust flex-grow value */
-    flex-basis: 0;
+    flex-basis: 1;
     overflow-x: auto;
     overflow-y: auto;
 }
-
 
 #rightContainer {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
 }
+
 #topRightContainer, #bottomRightContainer {
     flex-grow: 1;
     border: 1px solid black;

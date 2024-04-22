@@ -256,7 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `action=fetch_purchases&customerID=${document.getElementById('textInput').value}&locationID=${locationId}`
+            body: `action=fetch_purchases&customerID=${document.getElementById('textInput').value}&locationID=${locationID}`
         })
         .then(response => response.json())
         .then(data => {
@@ -430,6 +430,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
    
 
     function displayData(data) {
+        resetCanvas('myChart1');
+        resetCanvas('myChart2');
+        resetCanvas('myChart3');
         const display = document.getElementById('dataDisplay');
         display.innerHTML = '';  // Clear previous data
         const table = document.createElement('table');
