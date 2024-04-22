@@ -177,6 +177,12 @@ th, td {
     margin-bottom: 5px;
 }
 
+canvas {
+    width: 250px !important;
+    height: 250px !important;
+}
+
+
 #searchForm input[type="submit"] {
     cursor: pointer;
 }

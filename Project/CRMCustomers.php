@@ -199,9 +199,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     let allUserData = [];  // This will store all the user data
     let allPurchaseData = [];  // This will store all the purchase data
     let allPurchaseDetailData = [];  // This will store all the purchase detail data
-    let myChart1 = null; // Reference for a chart that might go into myChart1 canvas
-    let myChart2 = null; // Reference for the line chart
-    let myChart3 = null; // Reference for the bar chart
+    charts = {
+        myChart1: null,
+        myChart2: null,
+        myChart3: null
+    };
     document.getElementById('loadDataBtn').addEventListener('click', function() {
         if (allUserData.length === 0) {  // Fetch only if data has not been loaded
             fetchCustomerData();
@@ -293,14 +295,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             let ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Check if a chart instance exists and is a Chart.js instance before destroying
+            if (window[canvasId] && typeof window[canvasId].destroy === 'function') {
+                window[canvasId].destroy();
+            }
+
             // Remove and recreate canvas element to completely reset it
             let newCanvas = document.createElement('canvas');
             newCanvas.id = canvasId;
             newCanvas.width = canvas.width;
             newCanvas.height = canvas.height;
             canvas.parentNode.replaceChild(newCanvas, canvas);
+
+            // Reset the reference to ensure no residual linkage
+            window[canvasId] = null;
         }
     }
+
 
     function getFirstAvailableCanvas() {
         const canvasIds = ['myChart1', 'myChart2', 'myChart3'];
