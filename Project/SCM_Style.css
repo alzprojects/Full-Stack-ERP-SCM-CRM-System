@@ -21,6 +21,19 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+.nav-bar {
+    width: 100%;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+}
+.nav-bar a {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+
 h2 {
     color: black;
     margin: 20px;

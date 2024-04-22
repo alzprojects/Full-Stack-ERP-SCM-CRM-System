@@ -1,4 +1,5 @@
 <?php
+session_start();
 // Check if this is an AJAX request for user data
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_customers') {
     // Database connection settings
@@ -14,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
     
     function getAllCustomerIDs($conn) {
-        $sql = "SELECT customerID, gender, name FROM customers";
+        $sql = "SELECT customerID, gender, fname, lname FROM customers";
         $result = mysqli_query($conn, $sql);
         if (!$result) {
             header('Content-Type: application/json');
@@ -25,7 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         while ($row = mysqli_fetch_assoc($result)) {
             $userDetails[] = array(
                 'customerID' => $row['customerID'],
-                'name' => $row['name'],
+                'fname' => $row['fname'],
+                'lname' => $row['lname'],
                 'gender' => $row['gender']
             );
         }
@@ -41,8 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 }
 
 // Check if this is an AJAX request for purchases
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_purchases' && isset($_POST['customerID'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_purchases' && isset($_POST['customerID']) && isset($_POST['locationID'])) {
     $customerID = $_POST['customerID'];
+    $locationID = $_POST['locationID'];
+    // Database connection settings
     $servername = "mydb.itap.purdue.edu";
     $username = "g1135081";
     $password = "4i1]4S*Mns83";
@@ -51,9 +55,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $conn = new mysqli($servername, $username, $password, $database);
 
 
-    function getPurchasesByCustomerID($conn, $customerID) {
-        $stmt = $conn->prepare("SELECT * FROM purchase WHERE customerID = ?");
-        $stmt->bind_param("i", $customerID); // 'i' denotes that customerID is an integer
+
+    function getPurchasesByCustomerID($conn, $customerID, $locationID) {
+        if ($locationID == 0) {
+            $stmt = $conn->prepare("SELECT * FROM purchase WHERE customerID = ?");
+            $stmt->bind_param("i", $customerID); 
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if (!$result) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
+                exit;
+            }
+            $purchases = array();
+            while ($row = $result->fetch_assoc()) {
+                $purchases[] = $row;
+            }
+            $stmt->close();
+            return $purchases;
+        }
+        $stmt = $conn->prepare("SELECT * FROM purchase WHERE customerID = ? AND locationID = ?");
+        $stmt->bind_param("ii", $customerID, $locationID); 
         $stmt->execute();
         $result = $stmt->get_result();
         if (!$result) {
@@ -69,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         return $purchases;
     }
 
-    $purchases = getPurchasesByCustomerID($conn, $customerID);
+    $purchases = getPurchasesByCustomerID($conn, $customerID, $locationID);
     header('Content-Type: application/json');
     echo json_encode($purchases); 
     $conn->close();
@@ -118,6 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     exit;
 }
 
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -133,9 +156,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         <div class="navbar">
             <a href="homePage.html">Home</a>
             <a href="login.html">Login</a>
-            <a href="CRMUsers.php">Users</a>
-            <a href="CRMCustomers.php">Customers</a>
-            <a href="CRMSuppliers.php">Suppliers</a> 
+            <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
+            <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
+            <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
         </div>
         <div id ="smallContainer">
             <div id="leftContainer">
@@ -164,8 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             </div>
         </div>
     </div>
-<script>
-    let fileName = 'CRMCustomers.php';
+    <script>
     let allUserData = [];  // This will store all the user data
     let allPurchaseData = [];  // This will store all the purchase data
     let allPurchaseDetailData = [];  // This will store all the purchase detail data
@@ -216,17 +238,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
     function fetchPurchaseData() {
+        let locationID = <?php echo isset($_SESSION['locationID']) ? $_SESSION['locationID'] : 0; ?>;
         fetch('CRMCustomers.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_purchases&customerID=' + document.getElementById('textInput').value
+            body: `action=fetch_purchases&customerID=${document.getElementById('textInput').value}&locationID=${locationId}`
         })
         .then(response => response.json())
         .then(data => {
             allPurchaseData = data;  // Store fetched data
             displayData(allPurchaseData);  // Display all data
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            document.getElementById('dataDisplay').innerHTML = '<strong>Failed to load data. Please try again.</strong>';
+        });
+    }
+
+    function fetchPurchaseDetailData() {
+        fetch('CRMCustomers.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=fetch_purchasedetails&purchaseID=${document.getElementById('purchaseID').value}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            allPurchaseDetailData = data;  // Store fetched data
+            displayData(allPurchaseDetailData);  // Display all data
         })
         .catch(error => {
             console.error('Error fetching data:', error);
@@ -262,26 +304,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         return null;
     }
 
-    function fetchPurchaseDetailData() {
-        fetch('CRMCustomers.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'action=fetch_purchasedetails&purchaseID=' + document.getElementById('purchaseID').value
-        })
-        .then(response => response.json())
-        .then(data => {
-            allPurchaseDetailData = data;  // Store fetched data
-            displayData(allPurchaseDetailData);  // Display all data
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-            document.getElementById('dataDisplay').innerHTML = '<strong>Failed to load data. Please try again.</strong>';
-        });
-    }
 
     function showSummaryStats() {
+        resetCanvas('myChart1');
+        resetCanvas('myChart2');
+        resetCanvas('myChart3');
         let arr = extractDataFromTable();
         let headers = Object.keys(arr[0]);  
         if (headers.includes('satisfactionRating')) {
@@ -292,6 +319,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             }, {});
             let satisfactionLabels = Object.keys(satisfactionCounts);
             let satisfactionData = Object.values(satisfactionCounts);
+
             let canvas = getFirstAvailableCanvas();
             let ctx = document.getElementById(canvas).getContext('2d');
             let myChart = new Chart(ctx, {
@@ -390,9 +418,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
    
 
     function displayData(data) {
-        resetCanvas('myChart1');
-        resetCanvas('myChart2');
-        resetCanvas('myChart3');
         const display = document.getElementById('dataDisplay');
         display.innerHTML = '';  // Clear previous data
         const table = document.createElement('table');
@@ -425,32 +450,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
     
     function extractDataFromTable() {
-    const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
-    if (!table) {
-        console.log("No table found.");
-        return [];  // Return an empty array if no table is found
-    }
+        const table = document.querySelector('#dataDisplay table');  // Assuming there's only one table inside #dataDisplay
+        if (!table) {
+            console.log("No table found.");
+            return [];  // Return an empty array if no table is found
+        }
 
-    const rows = Array.from(table.rows);
-    if (rows.length < 2) {
-        console.log("Not enough data to extract.");
-        return [];  // Need at least two rows to have headers and data
-    }
+        const rows = Array.from(table.rows);
+        if (rows.length < 2) {
+            console.log("Not enough data to extract.");
+            return [];  // Need at least two rows to have headers and data
+        }
 
-    const headers = rows.shift().cells;  // The first row is headers
-    const headerNames = Array.from(headers).map(header => header.textContent);
+        const headers = rows.shift().cells;  // The first row is headers
+        const headerNames = Array.from(headers).map(header => header.textContent);
 
-    const data = rows.map(row => {
-        const cells = Array.from(row.cells);
-        let item = {};
-        cells.forEach((cell, index) => {
-            item[headerNames[index]] = cell.textContent;
+        const data = rows.map(row => {
+            const cells = Array.from(row.cells);
+            let item = {};
+            cells.forEach((cell, index) => {
+                item[headerNames[index]] = cell.textContent;
+            });
+            return item;
         });
-        return item;
-    });
 
-    return data;
-}
+        return data;
+    }
 
 
 </script>
