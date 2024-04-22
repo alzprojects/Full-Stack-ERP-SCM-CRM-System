@@ -232,7 +232,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             </div>
         </div>
     </div>
-    <script>    
+    <script>
+    function isLoggedIn() {
+        // Get the URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Check if the userID parameter exists in the URL
+        return urlParams.has('userID');
+    }
+
+    if (!isLoggedIn()) {
+        // Redirect the user to the login page
+        window.location.href = "login.php";
+    }    
     let allUserData = [];  // This will store all the user data
     let allPurchaseData = [];  // This will store all the purchase data
     let allPurchaseDetailData = [];  // This will store all the purchase detail data
