@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="SCM_Style.css">
+    
+    <style>
+        /* Add your CSS styles here */
+        /* Colorblind mode */
+        .colorblind-mode {
+            filter: invert(100%);
+        }
+
+        .colorblind-mode body {
+            background-color: white !important;
+            color: black !important;
+        }
+
+        .colorblind-mode img, .colorblind-mode canvas {
+            filter: invert(0%);
+        }
+
+        .colorblind-mode table, .colorblind-mode th, .colorblind-mode td {
+            border-color: black !important;
+            color: black !important;
+        }
+
+        .colorblind-mode a {
+            color: black !important;
+        }
+
+        /* Dark mode */
+        .dark-mode {
+            background-color: #111; /* Change background color for dark mode */
+            color: white; /* Change text color for dark mode */
+        }
+
+        .dark-mode .container {
+            background-color: #222; /* Change container background color for dark mode */
+        }
+
+        .dark-mode .navbar {
+            background-color: #666; /* Change navbar background color for dark mode */
+        }
+
+        .dark-mode .navbar a,
+        .dark-mode .btn {
+            color: white; /* Change text color for dark mode */
+        }
+
+        /* Light mode */
+        body.light-mode {
+            background-color: white; /* Change background color for light mode */
+            color: black; /* Change text color for light mode */
+        }
+
+        body.light-mode .container {
+            background-color: #f2f2f2; /* Change container background color for light mode */
+        }
+
+        body.light-mode .navbar {
+            background-color: #ccc; /* Change navbar background color for light mode */
+        }
+
+        body.light-mode .navbar a,
+        body.light-mode .btn {
+            color: black; /* Change text color for light mode */
+        }
+
+        /* Container styles */
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Navbar styles */
+        .navbar {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .navbar a {
+            margin-right: 10px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        /* Button styles */
+        .btn {
+            background-color: transparent;
+            border: 1px solid #333;
+            padding: 10px 20px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .btn:hover {
+            background-color: #333;
+            color: white;
+        }
+
+    </style>
+    <script>
+        function setDarkMode(isDarkMode) {
+            localStorage.setItem('darkMode', isDarkMode);
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            document.body.classList.toggle('light-mode', !isDarkMode); // Toggle light mode
+        }
+    
+        function toggleDarkMode() {
+            const isDarkMode = localStorage.getItem('darkMode') !== 'true';
+            setDarkMode(isDarkMode);
+    
+            // Example: Change button text based on mode
+            const darkModeButton = document.querySelector('.dark-mode-button');
+            darkModeButton.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+        }
+    
+        function toggleColorBlindMode() {
+            const isColorBlindMode = localStorage.getItem('colorBlindMode') !== 'true';
+            localStorage.setItem('colorBlindMode', isColorBlindMode);
+            document.body.classList.toggle('colorblind-mode', isColorBlindMode);
+    
+            // Example: Change button text based on mode
+            const colorBlindModeButton = document.querySelector('.colorblind-mode-button');
+            colorBlindModeButton.textContent = isColorBlindMode ? 'Colorblind Mode' : 'Normal Mode';
+    
+            // Adjust colors for improved readability in colorblind mode
+            const elements = document.querySelectorAll('.colorblind-adjust');
+            elements.forEach(element => {
+                if (isColorBlindMode) {
+                    // Set colors suitable for colorblind users
+                    element.style.color = '#000'; // Black text
+                    element.style.backgroundColor = '#fff'; // White background
+                } else {
+                    // Revert to default colors
+                    element.style.color = ''; // Revert text color
+                    element.style.backgroundColor = ''; // Revert background color
+                }
+            });
+        }
+    
+        // Check for user's preference on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            setDarkMode(isDarkMode);
+    
+            const isColorBlindMode = localStorage.getItem('colorBlindMode') === 'true';
+            document.body.classList.toggle('colorblind-mode', isColorBlindMode);
+    
+            const colorBlindModeButton = document.querySelector('.colorblind-mode-button');
+            colorBlindModeButton.textContent = isColorBlindMode ? 'Colorblind Mode' : 'Normal Mode';
+        });
+    </script>
+    
+    
+</head>
+<body>
+    <div class="container">
+        <h2>Settings</h2>
+        <div class="navbar">
+            <a href="homePage.html">Home</a>
+            <a href="SCM.HTML">SCM</a>
+            <a href="ERP_Finances.php">ERP</a>
+            <a href="CRM.HTML">CRM</a>
+            <a href="login.html">Login</a>
+            <a href="setting.html">Settings</a>
+        </div>
+        <button onclick="toggleDarkMode()" class="btn dark-mode-button">
+            Light Mode
+        </button> 
+        <br>
+        <button onclick="toggleColorBlindMode()" class="btn colorblind-mode-button">Colorblind Mode</button>
+        <br>
+        <br>
+        <button class="btn btn-danger" onclick="return btn_logout_onclick();">Logout</button>
+        <br>
+        <br>
+        <a href="homePage.html" class="btn">Back to Homepage</a>
+ 
+    </div>
+
+</body>
+</html>
