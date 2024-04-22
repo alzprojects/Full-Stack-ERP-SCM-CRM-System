@@ -195,3 +195,44 @@ th, td {
     background-color: rgba(0, 0, 0, 0.5); /* Color of the scrollbar thumb */
     border-radius: 6px; /* Roundness of the thumb */
 }
+
+.loginContainer {
+    width: 400px; /* Set the width of the login container */
+    padding: 20px; /* Padding around the content inside the container */
+    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
+    border-radius: 10px; /* Rounded corners for the container */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Shadow for 3D effect */
+    margin: 50px auto; /* Center the container on the page vertically and horizontally */
+    display: flex; /* Use flexbox for internal layout */
+    flex-direction: column; /* Stack children elements vertically */
+    align-items: center; /* Center-align the child elements */
+    justify-content: center; /* Center content vertically in the container */
+}
+
+.loginContainer input[type="text"],
+.loginContainer input[type="password"] {
+    width: 90%; /* Width of the input fields to fit container */
+    padding: 10px; /* Padding inside the input fields for better readability */
+    margin-top: 10px; /* Margin top for spacing between input fields */
+    background-color: rgba(0, 0, 0, 0.5); /* Background color for inputs */
+    border: 1px solid #ccc; /* Border color */
+    border-radius: 5px; /* Rounded corners for the inputs */
+    color: white; /* Text color inside the inputs */
+    font-size: 16px; /* Font size for readability */
+}
+
+.loginContainer button {
+    width: 95%; /* Button width to fit inside the container */
+    padding: 15px; /* Padding for button height */
+    margin-top: 20px; /* Space above the button */
+    background-color: rgb(50, 224, 224); /* Background color as defined in global button styles */
+    color: black; /* Text color */
+    font-size: 18px; /* Slightly larger font size for visibility */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.loginContainer button:hover {
+    background-color: rgb(25, 202, 202); /* Change background color on hover */
+}

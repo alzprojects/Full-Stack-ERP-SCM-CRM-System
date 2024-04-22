@@ -45,19 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login Page</title>
-<style>
-    .button-group {
-        display: flex;
-        justify-content: center;
-    }
-    .button-group button {
-        margin: 10px;
-    }
-    .error {
-        color: red;
-        margin: 10px 0;
-    }
-</style>
+<link rel="stylesheet" type="text/css" href="SCM_Style.css">
 </head>
 <body>
 
