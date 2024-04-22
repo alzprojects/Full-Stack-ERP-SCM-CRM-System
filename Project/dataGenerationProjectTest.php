@@ -2,36 +2,134 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Data Generation</title>
+<title>Data Generation Form</title>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var modal = document.getElementById("myModal");
+    var btn = document.getElementById("myBtn");
+    var span = document.getElementsByClassName("close")[0];
+
+    btn.onclick = function() {
+        modal.style.display = "block";
+    }
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+});
+</script>
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4); /* Semi-transparent black background around the modal */
+    padding-top: 50px;
+}
+
+.modal-content {
+    background-color: black; /* Change background color to black */
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    color: white; /* Change text color to white */
+}
+
+.modal label {
+    color: white; /* Ensure all labels inside the modal have white text */
+}
+
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+body {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    background-color: black;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    color: white;
+}
+
+button {
+    background-color: rgb(50, 224, 224);
+    color: black;
+    border: none;
+    padding: 15px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 30px;
+    margin: 7px 5px;
+    cursor: pointer;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+</style>
+
 </head>
 <body>
+<link="stylesheet" href = "SCM_Style.css"></link>
+<button type="button" id="myBtn">Add Data</button>
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <form action="dataGenerationProjectTest.php" method="post" onsubmit="return validateForm()">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" name="startDate" required>
 
-<!-- HTML Form for Data Generation with Added Fields and Validation -->
-<form action="dataGenerationProjectTest.php" method="post" onsubmit="return validateForm()">
-    <label for="startDate">Start Date:</label>
-    <input type="date" id="startDate" name="startDate" required>
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" name="endDate" required>
 
-    <label for="endDate">End Date:</label>
-    <input type="date" id="endDate" name="endDate" required>
-    
-    <label for="quantityProducts">Quantity of Products:</label>
-    <input type="number" id="quantityProducts" name="quantityProducts" required min="1">
+            <label for="quantityProducts">Quantity of Products:</label>
+            <input type="number" id="quantityProducts" name="quantityProducts" required min="1">
 
-    <label for="quantityLocations">Quantity of Locations:</label>
-    <input type="number" id="quantityLocations" name="quantityLocations" required min="1">
+            <label for="quantityLocations">Quantity of Locations:</label>
+            <input type="number" id="quantityLocations" name="quantityLocations" required min="1">
 
-    <label for="quantitySuppliers">Quantity of Suppliers:</label>
-    <input type="number" id="quantitySuppliers" name="quantitySuppliers" required min="1">
+            <label for="quantitySuppliers">Quantity of Suppliers:</label>
+            <input type="number" id="quantitySuppliers" name="quantitySuppliers" required min="1">
 
-    <label for="quantityCustomers">Quantity of Customers:</label>
-    <input type="number" id="quantityCustomers" name="quantityCustomers" required min="1">
-    
-    <label for="quantityEmployees">Quantity of Employees:</label>
-    <input type="number" id="quantityEmployees" name="quantityEmployees" required min="1">
+            <label for="quantityCustomers">Quantity of Customers:</label>
+            <input type="number" id="quantityCustomers" name="quantityCustomers" required min="1">
+            
+            <label for="quantityEmployees">Quantity of Employees:</label>
+            <input type="number" id="quantityEmployees" name="quantityEmployees" required min="1">
 
-    <button type="submit" name="generateData">Generate Data</button>
-</form>
+            <button type="submit" name="generateData">Generate Data</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
 
 <!-- PHP Script for data processing -->
 <?php
