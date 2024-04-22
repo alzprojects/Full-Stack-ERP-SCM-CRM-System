@@ -190,85 +190,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <style>
-        .layout-container {
-            display: flex;
-            flex-wrap: nowrap;
-            height: 100vh; /* Full viewport height */
-        }
-
-        .data-scrollbox {
-            width: 50%;
-            overflow-y: auto;
-            height: calc(100% - 50px); /* Less the height of the top bar */
-            border-right: 1px solid #ccc; /* A separator between data and graphs */
-        }
-
-        .graphs-container {
-            width: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-y: auto; /* Allows scrolling if there are many graphs */
-        }
-
-        .graph-canvas {
-            width: 100%;
-            max-width: 600px; /* Adjust this to fit your needs */
-            height: auto;
-            margin-bottom: 20px; /* Space between graphs */
-        }
-
-        .top-bar {
-            width: 100%;
-            height: 50px; /* Adjust based on your actual content */
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            border-bottom: 1px solid #ccc;
-        }
-        .nav-bar {
-            width: 100%;
-            background-color: #f0f0f0;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-        }
-        .nav-bar a {
-            text-decoration: none;
-            color: black;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="SCM_Style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>Fetch User Data</title>
+    <title>Micromanagement Central Yeehaw</title>
 </head>
 <body>
-    <div class="nav-bar">
-        <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
-        <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
-        <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
-    </div>
-    <div class="top-bar">
-        <button id="loadDataBtn">Load Supplier Data</button> 
-        <button id="loadOrderBtn">Load Order Data by Supplier</button>
-        <input type="number" id="orderID" placeholder="Enter SupplierID Here">
-        <button id="loadOrderDetailBtn">Load OrderDetail Data by OrderID</button>
-        <input type="number" id="purchaseID" placeholder="Enter OrderID Here">
-        <button id="showSummaryStats">Show Summary Stats</button>
-        <button id="removePlots">Remove Plots</button>
-    </div>
-    <div class="layout-container">
-        <div class="data-scrollbox">
-            <div id="dataDisplay"></div>
+    <div class="container">
+            <h2>Micromanagement Central Yeehaw</h2>
+            <div class="navbar">
+                <a href="homePage.html">Home</a>
+                <a href="login.html">Login</a>
+                <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
+                <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
+                <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
+            </div>
+        <div id ="smallContainer">
+            <div id="leftContainer">
+                Please enter a supplier ID, and then choose if you would like to see
+                the supplier data or the purchase data for that customer.
+                <br></br>    
+                <input type="number" id="orderID" placeholder="Enter SupplierID Here">
+                <button id="loadDataBtn">Load Supplier Data</button> 
+                <button id="loadOrderBtn">Load Order Data by Supplier</button>
+                <br></br>
+                Please enter an order ID to see the order detail data for that purchase.
+                <br></br>
+                <input type="number" id="purchaseID" placeholder="Enter OrderID Here">
+                <button id="loadOrderDetailBtn">Load OrderDetail Data by OrderID</button>
+                <br></br>
+                The following functionalities are to see summary statistics or remove plots.
+                <br></br>
+                <button id="showSummaryStats">Show Plots</button>
+                <button id="removePlots">Remove Plots</button>
+                <div id="dataDisplay"></div>
+            </div>
+            <div id ="rightContainer">
+                <canvas id="myChart1" ></canvas>
+                <canvas id="myChart2" ></canvas>
+                <canvas id="myChart3" ></canvas>
+            </div>
         </div>
-        <div class="graphs-container">
-            <canvas id="myChart1" width="100" height="100"></canvas>
-            <canvas id="myChart2" width="100" height="100"></canvas>
-            <canvas id="myChart3" width="100" height="100"></canvas>
-        </div>
     </div>
-<script>    
+    <script>    
     let allUserData = [];  // This will store all the user data
     let allPurchaseData = [];  // This will store all the purchase data
     let allPurchaseDetailData = [];  // This will store all the purchase detail data
@@ -312,7 +276,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_suppliers&locationID=' + locationId
+            body: 'action=fetch_suppliers&locationID=' + locationID
         })
         .then(response => response.json())
         .then(data => {

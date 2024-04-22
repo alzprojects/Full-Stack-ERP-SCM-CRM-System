@@ -74,8 +74,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <div class="button-group">
             <button type="submit">Login</button>
-        </div>
     </form>
+    <form action="dataGenerationProjectTest.php" method="post">
+        <div class="button-group">
+            <button>Login As Guest</button>
+        </div>
 </div>
 
 <?php if (isset($_SESSION['error'])): ?>

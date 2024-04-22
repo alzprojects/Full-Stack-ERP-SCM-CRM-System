@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Micromanagement Central Yeehaw</title>
+    <link rel="stylesheet" href="SCM_Style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h2>Micromanagement Central Yeehaw</h2>
+            <div class="navbar">
+                <a href="homePage.html">Home</a>
+                <a href="login.html">Login</a>
+                <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
+                <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
+                <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
+            </div>
+        <div id ="smallContainer">
+        <div id ="leftContainer">
+        Choose the load data button to pull in all relevant user data from database!
+        <br></br>
+        <button id="loadDataBtn">Load Data</button>
+        <br></br>
+        <div>
+            Filter users by type (employee, customer, supplier)
+            <br></br>
+            <label for="userTypeSelect">Filter by User Type:</label>
+            <select id="userTypeSelect" onchange="filterData()">
+                <option value="">All Types</option>
+                <option value="employee">Employee</option>
+                <option value="customer">Customer</option>
+                <option value="supplier">Supplier</option>
+            </select>
+        </div>
+        <br></br>
+
+        Choose a date range to filter users by start date (optional)
+        <br></br>
+        <div>
+            <label for="startDateFrom">Start Date From:</label>
+            <input type="date" id="startDateFrom" onchange="filterData()">
+            <label for="startDateTo">to</label>
+            <input type="date" id="startDateTo" onchange="filterData()">
+        </div>
+        <br></br>
+        <div id="dataDisplay"></div>
+        </div>
+    </div>
+    </div>
+    <script src="CRMUsers.js"></script> 
+</body>
+</html>

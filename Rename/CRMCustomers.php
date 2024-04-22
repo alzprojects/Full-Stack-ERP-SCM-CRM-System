@@ -146,90 +146,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <style>
-        /* Container for the entire layout */
-        .layout-container {
-            display: flex;
-            flex-wrap: nowrap;
-            height: 100vh; /* Using full view height */
-        }
-
-        /* Container for the scrollable data box */
-        .data-scrollbox {
-            width: 50%;
-            overflow-y: auto;
-            height: calc(100% - 50px); /* Adjust height, subtracting the top bar height */
-            border-right: 1px solid #ccc; /* Optional separator */
-        }
-
-        .graphs-container {
-            width: 50%; /* Maintain the width as before */
-            height: calc(100% - 50px); /* Adjust if necessary */
-            display: flex;
-            flex-direction: column; /* This makes the children stack vertically */
-            align-items: center; /* This centers the graphs horizontally */
-            justify-content: flex-start; /* This aligns the graphs to the top of the container */
-            overflow-y: auto; /* Adds scrolling if graphs exceed the container height */
-        }
-
-        .graph-canvas {
-            width: 100%; /* Full width of the container */
-            max-width: 600px; /* Maximum width, adjust as necessary */
-            height: auto; /* Keep the aspect ratio */
-            margin-bottom: 20px; /* Adds space between graphs */
-        }
-
-        /* Top bar containing buttons and inputs */
-        .top-bar {
-            width: 100%;
-            height: 50px; /* Adjust based on content */
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            border-bottom: 1px solid #ccc; /* Optional separator */
-        }
-        .nav-bar {
-            width: 100%;
-            background-color: #f0f0f0;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-        }
-        .nav-bar a {
-            text-decoration: none;
-            color: black;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="SCM_Style.css">
+    <title>Micromanagement Central Yeehaw</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>Fetch User Data</title>
 </head>
 <body>
-    <div class="nav-bar">
-        <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
-        <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
-        <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
+    <div class="container">
+        <h2>Micromanagement Central Yeehaw</h2>
+        <div class="navbar">
+            <a href="homePage.html">Home</a>
+            <a href="login.html">Login</a>
+            <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
+            <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
+            <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
+        </div>
+        <div id ="smallContainer">
+            <div id="leftContainer">
+                Please enter a customer ID, and then choose if you would like to see
+                the customer data or the purchase data for that customer.
+                <br></br>
+                <input type="number" id="textInput" placeholder="Enter CustomerID Here">
+                <button id="loadDataBtn">Load Cust Data</button> 
+                <button id="loadPurchaseBtn">Load Purchase Data by CustID</button>
+                <br></br>
+                Please enter a purchase ID to see the purchase detail data for that purchase.
+                <br></br>
+                <input type="number" id="purchaseID" placeholder="Enter PurchaseID Here">
+                <button id="loadPurchaseDetailBtn">Load PurchaseDetail Data by PurchaseID</button>
+                <br></br>
+                The following functionalities are to see summary statistics or remove plots.
+                <br></br>
+                <button id="showSummaryStats">Show Plots</button>
+                <button id="removePlots">Remove Plots</button>
+                <div id="dataDisplay"></div>
+            </div>
+            <div id="rightContainer">
+                <canvas id="myChart1" width="100" height="100"></canvas>
+                <canvas id="myChart2" width="100" height="100"></canvas>
+                <canvas id="myChart3" width="100" height="100"></canvas>
+            </div>
+        </div>
     </div>
-    <div class="top-bar">
-        <button id="loadDataBtn">Load Cust Data</button> 
-        <button id="loadPurchaseBtn">Load Purchase Data by CustID</button>
-        <input type="number" id="textInput" placeholder="Enter CustomerID Here">
-        <button id="loadPurchaseDetailBtn">Load PurchaseDetail Data by PurchaseID</button>
-        <input type="number" id="purchaseID" placeholder="Enter PurchaseID Here">
-        <button id="showSummaryStats">Show Summary Stats</button>
-        <button id="removePlots">Remove Plots</button>
-    </div>
-    <div class="layout-container">
-    <div class="data-scrollbox">
-        <div id="dataDisplay"></div>
-    </div>
-    <div class="graphs-container">
-        <canvas id="myChart1" width="100" height="100"></canvas>
-        <canvas id="myChart2" width="100" height="100"></canvas>
-        <canvas id="myChart3" width="100" height="100"></canvas>
-    </div>
-    </div>
-<script>
+    <script>
     let allUserData = [];  // This will store all the user data
     let allPurchaseData = [];  // This will store all the purchase data
     let allPurchaseDetailData = [];  // This will store all the purchase detail data
