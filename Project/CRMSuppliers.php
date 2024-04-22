@@ -277,12 +277,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             let ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Check if a chart instance exists and is a Chart.js instance before destroying
+            if (window[canvasId] && typeof window[canvasId].destroy === 'function') {
+                window[canvasId].destroy();
+            }
+
             // Remove and recreate canvas element to completely reset it
             let newCanvas = document.createElement('canvas');
             newCanvas.id = canvasId;
             newCanvas.width = canvas.width;
             newCanvas.height = canvas.height;
             canvas.parentNode.replaceChild(newCanvas, canvas);
+
+            // Reset the reference to ensure no residual linkage
+            window[canvasId] = null;
         }
     }
 
@@ -329,71 +337,120 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     function showSummaryStats() {
         let arr = extractDataFromTable();
         let headers = Object.keys(arr[0]);
-        if (headers.includes('quantity')) {
-            console.log(arr);
-            let productQuantities = arr.reduce((acc, item) => {
-                // Ensure item.quantity is treated as a number
-                let quantity = Number(item.quantity);
-                if (!isNaN(quantity)) {
-                    acc[item.productID] = (acc[item.productID] || 0) + quantity;
-                }
+
+        if (headers.includes('orderCost')) {
+            let orderCostsByMonth = arr.reduce((acc, item) => {
+                let [year, month] = item.deliveryDate.split('-');
+                let monthYear = `${month}-${year}`;
+                acc[monthYear] = (acc[monthYear] || 0) + Number(item.orderCost);
                 return acc;
             }, {});
+
+            let monthYearLabels = Object.keys(orderCostsByMonth).sort((a, b) => {
+                let [monthA, yearA] = a.split('-');
+                let [monthB, yearB] = b.split('-');
+                if (yearA !== yearB) {
+                    return yearA.localeCompare(yearB);
+                }
+                return monthA.localeCompare(monthB);
+            });
+
+            let monthYearData = monthYearLabels.map(monthYear => orderCostsByMonth[monthYear]);
             let canvas = getFirstAvailableCanvas();
-            let productLabels = Object.keys(productQuantities);
-            let productData = Object.values(productQuantities);
             let ctx = document.getElementById(canvas).getContext('2d');
+
             let myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: productLabels,
+                    labels: monthYearLabels,
                     datasets: [{
-                        label: 'Total Quantity per Product ID',
-                        data: productData,
+                        label: 'Total Order Cost',
+                        data: monthYearData,
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
                     }]
                 },
                 options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 50
+                                maxTicksLimit: 5 // Limiting the number of ticks
                             }
+                        },
+                        x: {
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 5 // Reducing the number of x-axis labels to prevent overlap
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false // Optionally hide the legend to save space
+                    },
+                    layout: {
+                        padding: {
+                            left: 5,
+                            right: 5,
+                            top: 5,
+                            bottom: 5
                         }
                     }
                 }
             });
         }
-        if (headers.includes('orderCost')) {
-            let orderCosts = arr.reduce((acc, item) => {
-                let month = item.deliveryDate.split('-')[1];
-                acc[month] = (acc[month] || 0) + Number(item.orderCost); // Using Number() to ensure it's treated as a number
+        if (headers.includes('quantity')) {
+            let quantitiesByProduct = arr.reduce((acc, item) => {
+                acc[item.productID] = (acc[item.productID] || 0) + Number(item.quantity);
                 return acc;
             }, {});
-            // Sort the months numerically (as strings, this works as expected for month numbers)
-            let monthLabels = Object.keys(orderCosts).sort((a, b) => a.localeCompare(b));
-            let monthData = monthLabels.map(month => orderCosts[month]);
+
+            let productIDs = Object.keys(quantitiesByProduct);
+            let productQuantities = productIDs.map(productID => quantitiesByProduct[productID]);
             let canvas = getFirstAvailableCanvas();
             let ctx = document.getElementById(canvas).getContext('2d');
+
             let myChart = new Chart(ctx, {
-                type: 'line',
+                type: 'bar',  // Changed from 'line' to 'bar'
                 data: {
-                    labels: monthLabels,
+                    labels: productIDs,
                     datasets: [{
-                        label: 'Total Order Cost per Month',
-                        data: monthData,
-                        fill: false,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
+                        label: 'Total Quantity per Product ID',
+                        data: productQuantities,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)', // Added a background color for bars
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
                     }]
                 },
                 options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                maxTicksLimit: 5  // Ensures the y-axis is not cluttered
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 5  // Prevents x-axis labels from overlapping
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true // Show the legend to clarify what the bars represent
+                    },
+                    layout: {
+                        padding: {
+                            left: 5,
+                            right: 5,
+                            top: 5,
+                            bottom: 5
                         }
                     }
                 }
