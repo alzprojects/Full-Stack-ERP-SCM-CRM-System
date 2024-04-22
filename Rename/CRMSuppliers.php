@@ -54,6 +54,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function getOrdersBySupplierID($conn, $supplierID, $locationID) {
+        if ($locationID == NULL) {
+            $query = "SELECT * FROM `order` WHERE supplierID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $supplierID); // 'i' denotes that supplierID is an integer
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if (!$result) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
+                exit;
+            }
+            $orders = array();
+            while ($row = $result->fetch_assoc()) {
+                $orders[] = $row;
+            }
+            $stmt->close();
+            return $orders;
+        }
         $query = "SELECT DISTINCT o.* FROM `order` o 
               INNER JOIN orderDetail od ON o.orderID = od.orderID 
               INNER JOIN inventoryDetail id ON od.inventoryDetailID = id.inventoryDetailID
@@ -96,6 +114,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
     
     function getAllOrderDetailIDs($conn, $orderID, $locationID) {
+        if($locationID == NULL) {
+            $sql = "SELECT * FROM orderDetail WHERE orderID = ?";
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => "Error preparing query: " . mysqli_error($conn)]);
+                exit;
+            }
+            $stmt->bind_param("i", $orderID);
+            $stmt->execute();
+            $result = $stmt->get_result();  // Correct method to fetch results from a prepared statement
+            if (!$result) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
+                exit;
+            }
+            $orderDetails = array();
+            while ($row = $result->fetch_assoc()) {
+                $orderDetails[] = array(
+                    'orderID' => $row['orderID'],
+                    'productID' => $row['productID'],
+                    'quantity' => $row['quantity'],
+                    'inventoryDetailID' => $row['inventoryDetailID'],
+                    'orderDetailID' => $row['orderDetailID']
+                );
+            }
+            $stmt->close();  
+            return $orderDetails;
+        }
         $sql = "SELECT od.* FROM orderDetail od
                 INNER JOIN inventoryDetail id ON od.inventoryDetailID = id.inventoryDetailID
                 WHERE od.orderID = ? AND id.locationID = ?";

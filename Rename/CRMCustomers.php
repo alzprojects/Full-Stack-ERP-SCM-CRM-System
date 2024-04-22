@@ -57,6 +57,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function getPurchasesByCustomerID($conn, $customerID, $locationID) {
+        if ($locationID == NULL) {
+            $stmt = $conn->prepare("SELECT * FROM purchase WHERE customerID = ?");
+            $stmt->bind_param("i", $customerID); 
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if (!$result) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
+                exit;
+            }
+            $purchases = array();
+            while ($row = $result->fetch_assoc()) {
+                $purchases[] = $row;
+            }
+            $stmt->close();
+            return $purchases;
+        }
         $stmt = $conn->prepare("SELECT * FROM purchase WHERE customerID = ? AND locationID = ?");
         $stmt->bind_param("ii", $customerID, $locationID); 
         $stmt->execute();

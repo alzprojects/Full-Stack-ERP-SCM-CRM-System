@@ -10,71 +10,79 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $database = "g1135081";
 
     $conn = new mysqli($servername, $username, $password, $database);
-
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
     // Function to get all user IDs
     function getAllUserIDs($conn, $locationID) {
-        $sql = "(
-            SELECT u.userID, u.start_date, u.user_type
-            FROM users u
-            WHERE u.user_type = 'supplier'
-        )
-        UNION
-        (
-            SELECT u.userID, u.start_date, u.user_type
-            FROM users u
-            INNER JOIN employees e ON u.userID = e.userID
-            WHERE u.user_type = 'employee' AND e.locationID = ?
-        )
-        UNION
-        (
-            SELECT u.userID, u.start_date, u.user_type
-            FROM users u
-            JOIN enumCustomer ec ON u.userID = ec.userID
-            JOIN purchase p ON ec.customerID = p.customerID
-            WHERE p.locationID = ? AND u.user_type = 'customer'
-        )";
-        $stmt = $conn->prepare($sql);
-        if (!$stmt) {
-            header('Content-Type: application/json');
-            echo json_encode(['error' => "Error preparing query: " . mysqli_error($conn)]);
-            exit;
-        }
-        $stmt->bind_param("ii", $locationID, $locationID);
-        if (!$stmt->execute()) {
-            header('Content-Type: application/json');
-            echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
-            exit;
-        }
-        $result = $stmt->get_result();
-        if ($result === false) {
-            header('Content-Type: application/json');
-            echo json_encode(['error' => "Error fetching data: " . mysqli_error($conn)]);
-            exit;
-        }
         $userDetails = array();
-        while ($row = $result->fetch_assoc()) {
-            $userDetails[] = array(
-                'userID' => $row['userID'],
-                'start_date' => $row['start_date'],
-                'user_type' => $row['user_type']
-            );
+        if ($locationID == 0) {
+            $sql = "SELECT userID, start_date, user_type FROM users";
+            $result = $conn->query($sql);
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    $userDetails[] = array(
+                        'userID' => $row['userID'],
+                        'start_date' => $row['start_date'],
+                        'user_type' => $row['user_type']
+                    );
+                }
+            }
+        } else {
+            $sql = "(
+                SELECT u.userID, u.start_date, u.user_type
+                FROM users u
+                WHERE u.user_type = 'supplier'
+            )
+            UNION
+            (
+                SELECT u.userID, u.start_date, u.user_type
+                FROM users u
+                INNER JOIN employees e ON u.userID = e.userID
+                WHERE u.user_type = 'employee' AND e.locationID = ?
+            )
+            UNION
+            (
+                SELECT u.userID, u.start_date, u.user_type
+                FROM users u
+                JOIN enumCustomer ec ON u.userID = ec.userID
+                JOIN purchase p ON ec.customerID = p.customerID
+                WHERE p.locationID = ? AND u.user_type = 'customer'
+            )";
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => "Error preparing query: " . mysqli_error($conn)]);
+                exit;
+            }
+            $stmt->bind_param("ii", $locationID, $locationID);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result === false) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => "Error fetching data: " . mysqli_error($conn)]);
+                exit;
+            }
+            while ($row = $result->fetch_assoc()) {
+                $userDetails[] = array(
+                    'userID' => $row['userID'],
+                    'start_date' => $row['start_date'],
+                    'user_type' => $row['user_type']
+                );
+            }
+            $stmt->close();
         }
-        $stmt->close();
-        header('Content-Type: application/json');
-        echo json_encode($userDetails);
-        exit;
+        return $userDetails;
     }
-    
-    // Call the function and return data
-    $userDetails = getAllUserIDs($conn, $locationID);
-    header('Content-Type: application/json');
-    echo json_encode($userDetails);
+    // Fetch all user IDs
+    $allUsers = getAllUserIDs($conn, $locationID);
+    // Close the connection
     $conn->close();
+    // Send the response as JSON
+    header('Content-Type: application/json');
+    echo json_encode($allUsers);
     exit;
-}
+}    
 ?>
 
 <!DOCTYPE html>
@@ -195,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
     function fetchData() {
-        let locationID = <?php echo $_SESSION['locationID']; ?>;  // Assumes session has started and locationID is set.
+        let locationID = <?php echo isset($_SESSION['locationID']) ? $_SESSION['locationID'] : 0; ?>;
         fetch('CRMUsers.php', {
             method: 'POST',
             headers: {
@@ -212,6 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             displayData(allUserData);  // Display all data
         })
         .catch(error => {
+            console.log("test2");
             console.error('Error fetching data:', error);
             document.getElementById('dataDisplay').innerHTML = '<strong>Failed to load data. Please try again.</strong>';
         });

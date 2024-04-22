@@ -158,11 +158,17 @@ $_SESSION['locationID'] = $locationID;
             <a href="login.html?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Login</a>
         </div>
         <div class="buttons">
-            <a href="../SCM/SCMInventory.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>"><button>SCM</button></a>
-            <a href="../Project/ERP_Inventory.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>"><button>ERP</button></a>
-            <a href="../Rename/CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>"><button>CRM</button></a>
+            <?php if ($_SESSION['SCMAccess'] == 1) : ?>
+                <a href="../SCM/SCMInventory.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>"><button>SCM</button></a>
+            <?php endif; ?>
+            <?php if ($_SESSION['ERPAccess'] == 1) : ?>
+                <a href="../Project/ERP_Inventory.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>"><button>ERP</button></a>
+            <?php endif; ?>
+            <?php if ($_SESSION['CRMAccess'] == 1) : ?>
+                <a href="../Rename/CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>"><button>CRM</button></a>
+            <?php endif; ?>
         </div>
-    </div>    
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
