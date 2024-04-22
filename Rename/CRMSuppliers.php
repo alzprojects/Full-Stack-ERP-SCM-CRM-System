@@ -42,8 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 }
 
 // Check if this is an AJAX request for purchases
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_orders' && isset($_POST['supplierID'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_orders' && isset($_POST['supplierID']) && isset($_POST['locationID'])) {
     $supplierID = $_POST['supplierID'];
+    $locationID = $_POST['locationID'];
     $servername = "mydb.itap.purdue.edu";
     $username = "g1135081";
     $password = "4i1]4S*Mns83";
@@ -52,9 +53,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $conn = new mysqli($servername, $username, $password, $database);
 
 
-    function getOrdersBySupplierID($conn, $supplierID) {
-        $stmt = $conn->prepare("SELECT * FROM `order` WHERE supplierID = ?");
-        $stmt->bind_param("i", $supplierID); // 'i' denotes that supplierID is an integer
+    function getOrdersBySupplierID($conn, $supplierID, $locationID) {
+        $query = "SELECT DISTINCT o.* FROM `order` o 
+              INNER JOIN orderDetail od ON o.orderID = od.orderID 
+              INNER JOIN inventoryDetail id ON od.inventoryDetailID = id.inventoryDetailID
+              WHERE o.supplierID = ? AND id.locationID = ?
+              GROUP BY o.orderID";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $supplierID, $locationID); // 'i' denotes that supplierID is an integer
         $stmt->execute();
         $result = $stmt->get_result();
         if (!$result) {
@@ -70,14 +76,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         return $orders;
     }
 
-    $orders = getOrdersBySupplierID($conn, $supplierID);
+    $orders = getOrdersBySupplierID($conn, $supplierID, $locationID);
     header('Content-Type: application/json');
     echo json_encode($orders); 
     $conn->close();
     exit;
 }
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_orderDetails' && isset($_POST['orderID'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_orderDetails' && isset($_POST['orderID']) && isset($_POST['locationID'])) {
     $orderID = $_POST['orderID'];
+    $locationID = $_POST['locationID'];
     // Database connection settings
     $servername = "mydb.itap.purdue.edu";
     $username = "g1135081";
@@ -88,16 +95,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         die("Connection failed: " . $conn->connect_error);
     }
     
-    function getAllOrderDetailIDs($conn, $orderID) {
-        $sql = "SELECT * FROM orderDetail WHERE orderID = $orderID";
-        $result = mysqli_query($conn, $sql);
+    function getAllOrderDetailIDs($conn, $orderID, $locationID) {
+        $sql = "SELECT od.* FROM orderDetail od
+                INNER JOIN inventoryDetail id ON od.inventoryDetailID = id.inventoryDetailID
+                WHERE od.orderID = ? AND id.locationID = ?";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => "Error preparing query: " . mysqli_error($conn)]);
+            exit;
+        }
+        $stmt->bind_param("ii", $orderID, $locationID);
+        $stmt->execute();
+        
+        $result = $stmt->get_result();  // Correct method to fetch results from a prepared statement
         if (!$result) {
             header('Content-Type: application/json');
             echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
             exit;
         }
+    
         $orderDetails = array();
-        while ($row = mysqli_fetch_assoc($result)) {
+        while ($row = $result->fetch_assoc()) {
             $orderDetails[] = array(
                 'orderID' => $row['orderID'],
                 'productID' => $row['productID'],
@@ -106,11 +125,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 'orderDetailID' => $row['orderDetailID']
             );
         }
+        $stmt->close();  // Make sure to close the statement when done
         return $orderDetails;
     }
+    
 
     // Call the function and return data
-    $orderDetails = getAllOrderDetailIDs($conn, $orderID);
+    $orderDetails = getAllOrderDetailIDs($conn, $orderID, $locationID);
     header('Content-Type: application/json');
     echo json_encode($orderDetails);
     $conn->close();
@@ -159,11 +180,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             justify-content: space-around;
             border-bottom: 1px solid #ccc;
         }
+        .nav-bar {
+            width: 100%;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+        .nav-bar a {
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Fetch User Data</title>
 </head>
 <body>
+    <div class="nav-bar">
+        <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
+        <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
+        <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
+    </div>
     <div class="top-bar">
         <button id="loadDataBtn">Load Supplier Data</button> 
         <button id="loadOrderBtn">Load Order Data by Supplier</button>
@@ -221,12 +259,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function fetchSupplierData() {
+        let locationId = <?php echo json_encode($_SESSION['locationID']); ?>;
         fetch('CRMSuppliers.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_suppliers'
+            body: 'action=fetch_suppliers&locationID=' + locationId
         })
         .then(response => response.json())
         .then(data => {
@@ -270,12 +309,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function fetchOrderData() {
+        let location = <?php echo json_encode($_SESSION['locationID']); ?>;
         fetch('CRMSuppliers.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_orders&supplierID=' + document.getElementById('orderID').value
+            body: 'action=fetch_orders&supplierID=' + document.getElementById('orderID').value + '&locationID=' + location
         })
         .then(response => response.json())
         .then(data => {
@@ -289,12 +329,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
     function fetchOrderDetailData() {
+        let location = <?php echo json_encode($_SESSION['locationID']); ?>;
         fetch('CRMSuppliers.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_orderDetails&orderID=' + document.getElementById('purchaseID').value
+            body: 'action=fetch_orderDetails&orderID=' + document.getElementById('purchaseID').value + '&locationID=' + location
         })
         .then(response => response.json())
         .then(data => {

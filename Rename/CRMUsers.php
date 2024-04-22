@@ -1,7 +1,8 @@
 <?php
 session_start();
 // Check if this is an AJAX request for user data
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_users') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_users' && isset($_POST['locationID'])) {
+    $locationID = $_POST['locationID']; 
     // Database connection settings
     $servername = "mydb.itap.purdue.edu";
     $username = "g1135081";
@@ -14,25 +15,61 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         die("Connection failed: " . $conn->connect_error);
     }
     // Function to get all user IDs
-    function getAllUserIDs($conn) {
-        $sql = "SELECT userID, start_date, user_type FROM users";
-        $result = mysqli_query($conn, $sql);
-        if (!$result) {
-            die("Error executing query: " . mysqli_error($conn));
+    function getAllUserIDs($conn, $locationID) {
+        $sql = "(
+            SELECT u.userID, u.start_date, u.user_type
+            FROM users u
+            WHERE u.user_type = 'supplier'
+        )
+        UNION
+        (
+            SELECT u.userID, u.start_date, u.user_type
+            FROM users u
+            INNER JOIN employees e ON u.userID = e.userID
+            WHERE u.user_type = 'employee' AND e.locationID = ?
+        )
+        UNION
+        (
+            SELECT u.userID, u.start_date, u.user_type
+            FROM users u
+            JOIN enumCustomer ec ON u.userID = ec.userID
+            JOIN purchase p ON ec.customerID = p.customerID
+            WHERE p.locationID = ? AND u.user_type = 'customer'
+        )";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => "Error preparing query: " . mysqli_error($conn)]);
+            exit;
+        }
+        $stmt->bind_param("ii", $locationID, $locationID);
+        if (!$stmt->execute()) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
+            exit;
+        }
+        $result = $stmt->get_result();
+        if ($result === false) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => "Error fetching data: " . mysqli_error($conn)]);
+            exit;
         }
         $userDetails = array();
-        while ($row = mysqli_fetch_assoc($result)) {
+        while ($row = $result->fetch_assoc()) {
             $userDetails[] = array(
                 'userID' => $row['userID'],
                 'start_date' => $row['start_date'],
                 'user_type' => $row['user_type']
             );
         }
-        return $userDetails;
+        $stmt->close();
+        header('Content-Type: application/json');
+        echo json_encode($userDetails);
+        exit;
     }
-
+    
     // Call the function and return data
-    $userDetails = getAllUserIDs($conn);
+    $userDetails = getAllUserIDs($conn, $locationID);
     header('Content-Type: application/json');
     echo json_encode($userDetails);
     $conn->close();
@@ -81,12 +118,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             justify-content: space-around;
             border-bottom: 1px solid #ccc;
         }
+        .nav-bar {
+            width: 100%;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+        .nav-bar a {
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Fetch User Data</title>
 </head>
-
 <body>
+    <div class="nav-bar">
+        <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
+        <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
+        <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
+    </div>
 <div class="top-bar"> 
     <button id="loadDataBtn">Load Data</button>
     <div>
@@ -142,12 +195,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
     function fetchData() {
+        let locationID = <?php echo $_SESSION['locationID']; ?>;  // Assumes session has started and locationID is set.
         fetch('CRMUsers.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_users'
+            body: new URLSearchParams({
+                'action': 'fetch_users',  // Correct spacing and format
+                'locationID': locationID  // Ensuring this parameter is sent correctly
+            })
         })
         .then(response => response.json())
         .then(data => {

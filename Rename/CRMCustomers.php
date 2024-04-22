@@ -171,11 +171,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             justify-content: space-around;
             border-bottom: 1px solid #ccc; /* Optional separator */
         }
+        .nav-bar {
+            width: 100%;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+        .nav-bar a {
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Fetch User Data</title>
 </head>
 <body>
+    <div class="nav-bar">
+        <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
+        <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
+        <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
+    </div>
     <div class="top-bar">
         <button id="loadDataBtn">Load Cust Data</button> 
         <button id="loadPurchaseBtn">Load Purchase Data by CustID</button>
