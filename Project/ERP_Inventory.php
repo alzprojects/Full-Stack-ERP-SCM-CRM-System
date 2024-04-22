@@ -45,7 +45,7 @@ echo <<<EOT
                 <div id="rightContainer">
                     <div id="topRightContainer">
                         <h3>Plots & Figures</h3>
-                        <p id="chartDescription" style="display: none;">Quantity of Orders Delivered over Time (per Product)</p>
+                        <p id="chartDescriptionInventoryInventory" style="display: none;">Quantity of Orders Delivered over Time (per Product)</p>
                         <canvas id="chartCanvas4"></canvas>
                         <p>Quantity of Orders Delivered over Time (all Products) </p>
                         <canvas id="chartCanvas3"></canvas>
@@ -118,9 +118,9 @@ Purdue database where the music database from lab10 is still loaded.
 */
 
 $servername = "mydb.itap.purdue.edu";
-$username = "azimbali";
-$password = "Max!024902!!";
-$database = "azimbali";
+$username = "g1135081";
+$password = "4i1]4S*Mns83";
+$database = "g1135081";
 
 // Create connection (ONLY NEEDED ONCE per PHP page!)
 $conn = new mysqli($servername, $username, $password);
@@ -243,7 +243,7 @@ $product_id = 0; // Default value
 echo "
 <script>
 document.getElementById('chartCanvas4').style.display = 'none';
-document.getElementById('chartDescription').style.display = 'none';
+document.getElementById('chartDescriptionInventory').style.display = 'none';
 
 </script>
 ";
@@ -251,11 +251,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
     $product_id = intval(sanitize_input($_POST["product_id"]));
     echo"
     <script>
-    document.getElementById('chartDescription').innerText = 'Purchase over Time (for productID: ' + $product_id + ')';
+    document.getElementById('chartDescriptionInventory').innerText = 'Purchase over Time (for productID: ' + $product_id + ')';
     document.getElementById('product_id_paragraph').innerText = 'The product ID is: ' + $product_id;
     if ($product_id != 0) {
         document.getElementById('chartCanvas4').style.display = 'block';
-        document.getElementById('chartDescription').style.display = 'block';
+        document.getElementById('chartDescriptionInventory').style.display = 'block';
 
     }
     </script>
