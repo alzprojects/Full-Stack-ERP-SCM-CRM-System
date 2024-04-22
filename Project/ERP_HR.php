@@ -117,9 +117,9 @@ Purdue database where the music database from lab10 is still loaded.
 */
 
 $servername = "mydb.itap.purdue.edu";
-$username = "azimbali";
-$password = "Max!024902!!";
-$database = "azimbali";
+$username = "g1135081";
+$password = "4i1]4S*Mns83";
+$database = "g1135081";
 
 // Create connection (ONLY NEEDED ONCE per PHP page!)
 $conn = new mysqli($servername, $username, $password);
@@ -182,6 +182,7 @@ function getLocationWithMostUsers($conn) {
     // Construct the SQL query
     $sql = "SELECT locationID, COUNT(userID) as user_count
             FROM employees
+            WHERE locationID IS NOT NULL
             GROUP BY locationID
             ORDER BY user_count DESC
             LIMIT 1";
@@ -206,12 +207,13 @@ func to calc total number of users in users table
 */
 
 $totalUsers = getTotalUsers($conn);
-echo "<script>document.getElementById('totalU').innerText = 'The total number of users: " . $totalUsers . "';</script>";
+echo "<script>document.getElementById('totalU').innerText = 'The total number of employees: " . $totalUsers . "';</script>";
 
 function getTotalUsers($conn) {
     // Construct the SQL query
     $sql = "SELECT COUNT(userID) as total_users 
-            FROM users";
+            FROM users
+            WHERE user_type = 'employee'";
 
     // Execute the SQL query
     $result = $conn->query($sql);
@@ -320,13 +322,13 @@ function getUserData($conn, $user_id) {
     if ($user_type == 'supplier') {
         $sql = "SELECT users.userID, users.start_date, users.end_date, users.username, users.password, supplier.supplierID, supplier.name, supplier.address
                 FROM users
-                JOIN enumSupplier ON users.userID = enumSupplier.user_id
+                JOIN enumSupplier ON users.userID = enumSupplier.userID
                 JOIN supplier ON enumSupplier.supplierID = supplier.supplierID
                 WHERE users.userID = ?";
     } elseif ($user_type == 'customer') {
-        $sql = "SELECT users.userID, users.start_date, users.end_date, users.username, users.password, customers.customerID, customers.name, customers.gender
+        $sql = "SELECT users.userID, users.start_date, users.end_date, users.username, users.password, customers.customerID, customers.fname,customers.lname, customers.gender
                 FROM users
-                JOIN enumCustomer ON users.userID = enumCustomer.user_id
+                JOIN enumCustomer ON users.userID = enumCustomer.userID
                 JOIN customers ON enumCustomer.customerID = customers.customerID
                 WHERE users.userID = ?";
     } elseif ($user_type == 'employee') {
@@ -375,7 +377,7 @@ function getUserData($conn, $user_id) {
         document.getElementById('user_type_paragraph').innerText = 'The selected user type is: ' + '$user_type';
         </script>
         ";
-        $stmt->bind_result($user_id, $start_date, $end_date, $username, $password, $customerID, $name, $gender);        $table = "<table id='artistTable'>";
+        $stmt->bind_result($user_id, $start_date, $end_date, $username, $password, $customerID, $fname, $lname, $gender);        $table = "<table id='artistTable'>";
         $table = "<table id='artistTable'>";
         $table .= "<tr><th>Customer ID</th><th>Customer Name</th><th>Gender</th><th>Username</th><th>Password</th><th>Start Date</th><th>End Date</th></tr>";
         while ($stmt->fetch()) {

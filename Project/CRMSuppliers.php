@@ -1,5 +1,4 @@
 <?php
-session_start();
 // Check if this is an AJAX request for user data
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_suppliers') {
     // Database connection settings
@@ -42,9 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 }
 
 // Check if this is an AJAX request for purchases
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_orders' && isset($_POST['supplierID']) && isset($_POST['locationID'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_orders' && isset($_POST['supplierID'])) {
     $supplierID = $_POST['supplierID'];
-    $locationID = $_POST['locationID'];
     $servername = "mydb.itap.purdue.edu";
     $username = "g1135081";
     $password = "4i1]4S*Mns83";
@@ -52,33 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
     $conn = new mysqli($servername, $username, $password, $database);
 
-
-    function getOrdersBySupplierID($conn, $supplierID, $locationID) {
-        if ($locationID == 0) {
-            $query = "SELECT * FROM `order` WHERE supplierID = ?";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("i", $supplierID); // 'i' denotes that supplierID is an integer
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if (!$result) {
-                header('Content-Type: application/json');
-                echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
-                exit;
-            }
-            $orders = array();
-            while ($row = $result->fetch_assoc()) {
-                $orders[] = $row;
-            }
-            $stmt->close();
-            return $orders;
-        }
-        $query = "SELECT DISTINCT o.* FROM `order` o 
-              INNER JOIN orderDetail od ON o.orderID = od.orderID 
-              INNER JOIN inventoryDetail id ON od.inventoryDetailID = id.inventoryDetailID
-              WHERE o.supplierID = ? AND id.locationID = ?
-              GROUP BY o.orderID";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("ii", $supplierID, $locationID); // 'i' denotes that supplierID is an integer
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }    
+    function getOrdersBySupplierID($conn, $supplierID) {
+        $stmt = $conn->prepare("SELECT * FROM `order` WHERE supplierID = ?");
+        $stmt->bind_param("i", $supplierID); // 'i' denotes that supplierID is an integer
         $stmt->execute();
         $result = $stmt->get_result();
         if (!$result) {
@@ -94,91 +71,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         return $orders;
     }
 
-    $orders = getOrdersBySupplierID($conn, $supplierID, $locationID);
+    $orders = getOrdersBySupplierID($conn, $supplierID);
     header('Content-Type: application/json');
     echo json_encode($orders); 
     $conn->close();
     exit;
 }
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_orderDetails' && isset($_POST['orderID']) && isset($_POST['locationID'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_orderDetails' && isset($_POST['orderID'])) {
     $orderID = $_POST['orderID'];
-    $locationID = $_POST['locationID'];
     // Database connection settings
     $servername = "mydb.itap.purdue.edu";
     $username = "g1135081";
     $password = "4i1]4S*Mns83";
     $database = "g1135081";
+
     $conn = new mysqli($servername, $username, $password, $database);
+
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
     
-    function getAllOrderDetailIDs($conn, $orderID, $locationID) {
-        if($locationID == 0) {
-            $sql = "SELECT * FROM orderDetail WHERE orderID = ?";
-            $stmt = $conn->prepare($sql);
-            if (!$stmt) {
-                header('Content-Type: application/json');
-                echo json_encode(['error' => "Error preparing query: " . mysqli_error($conn)]);
-                exit;
-            }
-            $stmt->bind_param("i", $orderID);
-            $stmt->execute();
-            $result = $stmt->get_result();  // Correct method to fetch results from a prepared statement
-            if (!$result) {
-                header('Content-Type: application/json');
-                echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
-                exit;
-            }
-            $orderDetails = array();
-            while ($row = $result->fetch_assoc()) {
-                $orderDetails[] = array(
-                    'orderID' => $row['orderID'],
-                    'productID' => $row['productID'],
-                    'quantity' => $row['quantity'],
-                    'inventoryDetailID' => $row['inventoryDetailID'],
-                    'orderDetailID' => $row['orderDetailID']
-                );
-            }
-            $stmt->close();  
-            return $orderDetails;
-        }
-        $sql = "SELECT od.* FROM orderDetail od
-                INNER JOIN inventoryDetail id ON od.inventoryDetailID = id.inventoryDetailID
-                WHERE od.orderID = ? AND id.locationID = ?";
-        $stmt = $conn->prepare($sql);
-        if (!$stmt) {
-            header('Content-Type: application/json');
-            echo json_encode(['error' => "Error preparing query: " . mysqli_error($conn)]);
-            exit;
-        }
-        $stmt->bind_param("ii", $orderID, $locationID);
-        $stmt->execute();
-        
-        $result = $stmt->get_result();  // Correct method to fetch results from a prepared statement
+    function getAllOrderDetailIDs($conn, $orderID) {
+        $sql = "SELECT * FROM orderDetail WHERE orderID = $orderID";
+        $result = mysqli_query($conn, $sql);
         if (!$result) {
             header('Content-Type: application/json');
             echo json_encode(['error' => "Error executing query: " . mysqli_error($conn)]);
             exit;
         }
-    
         $orderDetails = array();
-        while ($row = $result->fetch_assoc()) {
+        while ($row = mysqli_fetch_assoc($result)) {
             $orderDetails[] = array(
+                'orderDetailID' => $row['orderDetailID'],
                 'orderID' => $row['orderID'],
                 'productID' => $row['productID'],
                 'quantity' => $row['quantity'],
-                'inventoryDetailID' => $row['inventoryDetailID'],
-                'orderDetailID' => $row['orderDetailID']
+                'inventoryDetailID' => $row['inventoryDetailID']
             );
         }
-        $stmt->close();  // Make sure to close the statement when done
         return $orderDetails;
     }
-    
 
     // Call the function and return data
-    $orderDetails = getAllOrderDetailIDs($conn, $orderID, $locationID);
+    $orderDetails = getAllOrderDetailIDs($conn, $orderID);
     header('Content-Type: application/json');
     echo json_encode($orderDetails);
     $conn->close();
@@ -201,12 +136,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             <div class="navbar">
                 <a href="homePage.html">Home</a>
                 <a href="login.html">Login</a>
-                <a href="CRMUsers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Users</a>
-                <a href="CRMCustomers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Customers</a>
-                <a href="CRMSuppliers.php?userID=<?php echo $_SESSION['userID']; ?>&locationID=<?php echo $_SESSION['locationID']; ?>">Suppliers</a>
+                <a href="CRMUsers.php">Users</a>
+                <a href="CRMCustomers.php">Customers</a>
+                <a href="CRMSuppliers.php">Suppliers</a> 
             </div>
         <div id ="smallContainer">
-            <div id="altleftContainer">
+            <div id="leftContainer">
+                <h3>Data</h3>
                 Please enter a supplier ID, and then choose if you would like to see
                 the supplier data or the purchase data for that customer.
                 <br></br>    
@@ -219,32 +155,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 <input type="number" id="purchaseID" placeholder="Enter OrderID Here">
                 <button id="loadOrderDetailBtn">Load OrderDetail Data by OrderID</button>
                 <br></br>
+                <div id="dataDisplay"></div>
+            </div>
+            <div id ="rightContainer">
+                <h3>Plots & Figures</h3>
                 The following functionalities are to see summary statistics or remove plots.
                 <br></br>
                 <button id="showSummaryStats">Show Plots</button>
                 <button id="removePlots">Remove Plots</button>
-                <div id="dataDisplay"></div>
-            </div>
-            <div id ="rightContainer">
                 <canvas id="myChart1" ></canvas>
                 <canvas id="myChart2" ></canvas>
                 <canvas id="myChart3" ></canvas>
             </div>
         </div>
     </div>
-    <script>
-    function isLoggedIn() {
-        // Get the URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-
-        // Check if the userID parameter exists in the URL
-        return urlParams.has('userID');
-    }
-
-    if (!isLoggedIn()) {
-        // Redirect the user to the login page
-        window.location.href = "login.php";
-    }    
+<script>
+    let fileName = 'CRMSuppliers.php';
     let allUserData = [];  // This will store all the user data
     let allPurchaseData = [];  // This will store all the purchase data
     let allPurchaseDetailData = [];  // This will store all the purchase detail data
@@ -259,15 +185,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         }
     });
     document.getElementById('loadOrderBtn').addEventListener('click', function() {
-        resetCanvas('myChart1');
-        resetCanvas('myChart2');
-        resetCanvas('myChart3');
         fetchOrderData();
     });
     document.getElementById('loadOrderDetailBtn').addEventListener('click', function() {
-        resetCanvas('myChart1');
-        resetCanvas('myChart2');
-        resetCanvas('myChart3');
         fetchOrderDetailData();
     });
     document.getElementById('showSummaryStats').addEventListener('click', function() {
@@ -282,13 +202,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function fetchSupplierData() {
-        let locationID = <?php echo isset($_SESSION['locationID']) ? $_SESSION['locationID'] : 0; ?>;
-        fetch('CRMSuppliers.php', {
+        fetch(fileName, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_suppliers&locationID=' + locationID
+            body: 'action=fetch_suppliers'
         })
         .then(response => response.json())
         .then(data => {
@@ -317,32 +236,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         }
     }
 
-    function getFirstAvailableCanvas() {
-        const canvasIds = ['myChart1', 'myChart2', 'myChart3'];
-        for (let id of canvasIds) {
-            let canvas = document.getElementById(id);
-            if (!window.charts || !window.charts[id] || (window.charts[id] && window.charts[id].data.datasets.length === 0)) {
-                console.log(canvas.id);
-                return canvas.id;
-            }
-        }
-        return null;
-    }
-
-
 
     function fetchOrderData() {
-        let locationID = <?php echo isset($_SESSION['locationID']) ? $_SESSION['locationID'] : 0; ?>;
-        fetch('CRMSuppliers.php', {
+        fetch(fileName, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_orders&supplierID=' + document.getElementById('orderID').value + '&locationID=' + location
+            body: 'action=fetch_orders&supplierID=' + document.getElementById('orderID').value
         })
         .then(response => response.json())
         .then(data => {
             allPurchaseData = data;  // Store fetched data
+            console.log(allPurchaseData);
             displayData(allPurchaseData);  // Display all data
         })
         .catch(error => {
@@ -352,13 +258,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
     function fetchOrderDetailData() {
-        let locationID = <?php echo isset($_SESSION['locationID']) ? $_SESSION['locationID'] : 0; ?>;
-        fetch('CRMSuppliers.php', {
+        fetch(fileName, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'action=fetch_orderDetails&orderID=' + document.getElementById('purchaseID').value + '&locationID=' + location
+            body: 'action=fetch_orderDetails&orderID=' + document.getElementById('purchaseID').value
         })
         .then(response => response.json())
         .then(data => {
@@ -387,9 +292,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             let canvas = getFirstAvailableCanvas();
             let productLabels = Object.keys(productQuantities);
             let productData = Object.values(productQuantities);
-            if (myChart3) {
-                myChart3.destroy(); // Destroy the chart instance
-            }
             let ctx = document.getElementById(canvas).getContext('2d');
             let myChart = new Chart(ctx, {
                 type: 'bar',
@@ -449,8 +351,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         }
     }
    
+    function getFirstAvailableCanvas() {
+        const canvasIds = ['myChart1', 'myChart2', 'myChart3'];
+        for (let id of canvasIds) {
+            let canvas = document.getElementById(id);
+            if (!window.charts || !window.charts[id] || (window.charts[id] && window.charts[id].data.datasets.length === 0)) {
+                console.log(canvas.id);
+                return canvas.id;
+            }
+        }
+        return null;
+    }
 
     function displayData(data) {
+        resetCanvas('myChart1');
+        resetCanvas('myChart2');
+        resetCanvas('myChart3');
         const display = document.getElementById('dataDisplay');
         display.innerHTML = '';  // Clear previous data
         const table = document.createElement('table');
@@ -509,6 +425,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
         return data;
 }
+
 
 </script>
 </body>

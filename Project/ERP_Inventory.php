@@ -47,7 +47,7 @@ echo <<<EOT
                         <h3>Plots & Figures</h3>
                         <p id="chartDescriptionInventoryInventory" style="display: none;">Quantity of Orders Delivered over Time (per Product)</p>
                         <canvas id="chartCanvas4"></canvas>
-                        <p>Quantity of Orders Delivered over Time (all Products) </p>
+                        <p>Quantity of Orders Delivered over Time (all Products): </p>
                         <canvas id="chartCanvas3"></canvas>
                         <p>Distribution of Delivery Locations:</p>
                         <canvas id="chartCanvas2"></canvas>
