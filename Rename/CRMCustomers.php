@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function getPurchasesByCustomerID($conn, $customerID, $locationID) {
-        if ($locationID == NULL) {
+        if ($locationID == 0) {
             $stmt = $conn->prepare("SELECT * FROM purchase WHERE customerID = ?");
             $stmt->bind_param("i", $customerID); 
             $stmt->execute();
@@ -280,7 +280,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
     function fetchPurchaseData() {
-        let locationId = <?php echo json_encode($_SESSION['locationID']); ?>;
+        let locationID = <?php echo isset($_SESSION['locationID']) ? $_SESSION['locationID'] : 0; ?>;
         fetch('CRMCustomers.php', {
             method: 'POST',
             headers: {

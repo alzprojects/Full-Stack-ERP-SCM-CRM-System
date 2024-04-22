@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function getOrdersBySupplierID($conn, $supplierID, $locationID) {
-        if ($locationID == NULL) {
+        if ($locationID == 0) {
             $query = "SELECT * FROM `order` WHERE supplierID = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("i", $supplierID); // 'i' denotes that supplierID is an integer
@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
     
     function getAllOrderDetailIDs($conn, $orderID, $locationID) {
-        if($locationID == NULL) {
+        if($locationID == 0) {
             $sql = "SELECT * FROM orderDetail WHERE orderID = ?";
             $stmt = $conn->prepare($sql);
             if (!$stmt) {
@@ -306,7 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function fetchSupplierData() {
-        let locationId = <?php echo json_encode($_SESSION['locationID']); ?>;
+        let locationID = <?php echo isset($_SESSION['locationID']) ? $_SESSION['locationID'] : 0; ?>;
         fetch('CRMSuppliers.php', {
             method: 'POST',
             headers: {
@@ -356,7 +356,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 
     function fetchOrderData() {
-        let location = <?php echo json_encode($_SESSION['locationID']); ?>;
+        let locationID = <?php echo isset($_SESSION['locationID']) ? $_SESSION['locationID'] : 0; ?>;
         fetch('CRMSuppliers.php', {
             method: 'POST',
             headers: {
@@ -376,7 +376,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 
     function fetchOrderDetailData() {
-        let location = <?php echo json_encode($_SESSION['locationID']); ?>;
+        let locationID = <?php echo isset($_SESSION['locationID']) ? $_SESSION['locationID'] : 0; ?>;
         fetch('CRMSuppliers.php', {
             method: 'POST',
             headers: {
