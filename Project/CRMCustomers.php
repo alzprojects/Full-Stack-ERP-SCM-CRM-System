@@ -181,9 +181,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 <div id="dataDisplay"></div>
             </div>
             <div id="rightContainer">
-                <canvas id="myChart1" width="100" height="100"></canvas>
-                <canvas id="myChart2" width="100" height="100"></canvas>
-                <canvas id="myChart3" width="100" height="100"></canvas>
+                <canvas id="myChart1" width="250" height="250"></canvas>
+                <canvas id="myChart2" width="250" height="250"></canvas>
+                <canvas id="myChart3" width="250" height="250"></canvas>
             </div>
         </div>
     </div>
@@ -294,13 +294,50 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             let ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Check if a chart instance exists and is a Chart.js instance before destroying
+            if (window[canvasId] && typeof window[canvasId].destroy === 'function') {
+                window[canvasId].destroy();
+            }
+
             // Remove and recreate canvas element to completely reset it
             let newCanvas = document.createElement('canvas');
             newCanvas.id = canvasId;
             newCanvas.width = canvas.width;
             newCanvas.height = canvas.height;
             canvas.parentNode.replaceChild(newCanvas, canvas);
+
+            // Reset the reference to ensure no residual linkage
+            window[canvasId] = null;
         }
+    }
+
+
+    function createChart(canvasId, type, labels, data, label, backgroundColor, borderColor) {
+        let ctx = document.getElementById(canvasId).getContext('2d');
+        let chart = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    backgroundColor: backgroundColor,
+                    borderColor: borderColor,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+        window[canvasId] = chart; // Store chart reference globally
     }
 
     function getFirstAvailableCanvas() {
@@ -333,30 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             let satisfactionData = Object.values(satisfactionCounts);
 
             let canvas = getFirstAvailableCanvas();
-            let ctx = document.getElementById(canvas).getContext('2d');
-            let myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: satisfactionLabels,
-                    datasets: [{
-                        label: 'Satisfaction Ratings',
-                        data: satisfactionData,
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
-            });
+            createChart(canvas, 'bar', satisfactionLabels, satisfactionData, 'Satisfaction Ratings', 'rgba(255, 99, 132, 0.2)', 'rgba(255, 99, 132, 1)');
         }
         if (headers.includes('locationID')) {
             let locationIDs = arr.map(item => item.locationID);
