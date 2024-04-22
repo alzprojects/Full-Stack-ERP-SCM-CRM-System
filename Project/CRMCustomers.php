@@ -1,4 +1,31 @@
 <?php
+session_start();
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'], $_POST['userID']) && $_POST['action'] == 'fetch_user_access') {
+    $servername = "mydb.itap.purdue.edu";
+    $username = "g1135081";
+    $password = "4i1]4S*Mns83";
+    $database = "g1135081";
+
+    $conn = new mysqli($servername, $username, $password, $database);
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+    
+    $userID = intval($_POST['userID']);
+    $stmt = $conn->prepare("SELECT * FROM employees WHERE userID = ?");
+    $stmt->bind_param("i", $userID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        echo json_encode($row);
+    } else {
+        echo json_encode(['error' => 'No user found']);
+    }
+    $stmt->close();
+    $conn->close();
+    exit;
+}
 // Check if this is an AJAX request for user data
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_customers') {
     // Database connection settings
@@ -14,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
     
     function getAllCustomerIDs($conn) {
-        $sql = "SELECT customerID, gender, name FROM customers";
+        $sql = "SELECT customerID, gender, fname, lname FROM customers";
         $result = mysqli_query($conn, $sql);
         if (!$result) {
             header('Content-Type: application/json');
@@ -25,7 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         while ($row = mysqli_fetch_assoc($result)) {
             $userDetails[] = array(
                 'customerID' => $row['customerID'],
-                'name' => $row['name'],
+                'fname' => $row['fname'],
+                'lname' => $row['lname'],
                 'gender' => $row['gender']
             );
         }
@@ -196,6 +224,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         resetCanvas('myChart3');
     });
 
+    function fetchUserAccess() {
+        let userID = <?php echo isset($_SESSION['userID']) ? $_SESSION['userID'] : 0; ?>;
+        console.log('Fetching user access for user ID:', userID);
+        fetch('CRMCustomers.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=fetch_user_access&userID=${userID}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data || data.error || data.userID != userID || data.CRMAccess != 1) {
+                alert('You do not have access to view this page.');
+                window.location.href = 'homepage.html';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching user data:', error);
+            alert('Error fetching user data. You do not have access to view this page.');
+            window.location.href = 'homepage.html';
+        });
+    }
 
 
     function fetchCustomerData() {
@@ -454,7 +505,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     return data;
 }
 
-
+fetchUserAccess();
 </script>
 </body>
 </html>

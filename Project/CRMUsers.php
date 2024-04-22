@@ -1,4 +1,31 @@
 <?php
+session_start();
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'], $_POST['userID']) && $_POST['action'] == 'fetch_user_access') {
+    $servername = "mydb.itap.purdue.edu";
+    $username = "g1135081";
+    $password = "4i1]4S*Mns83";
+    $database = "g1135081";
+
+    $conn = new mysqli($servername, $username, $password, $database);
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+    
+    $userID = intval($_POST['userID']);
+    $stmt = $conn->prepare("SELECT * FROM employees WHERE userID = ?");
+    $stmt->bind_param("i", $userID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        echo json_encode($row);
+    } else {
+        echo json_encode(['error' => 'No user found']);
+    }
+    $stmt->close();
+    $conn->close();
+    exit;
+}
 // Check if this is an AJAX request for user data
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'fetch_users') {
     // Database connection settings
@@ -55,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 <a href="login.html">Login</a>
                 <a href="CRMUsers.php">Users</a>
                 <a href="CRMCustomers.php">Customers</a>
-                <a href="CRMSuppliers">Suppliers</a>
+                <a href="CRMSuppliers.php">Suppliers</a>
             </div>
         <div id ="smallContainer">
         <div id ="leftContainer">
@@ -98,6 +125,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             displayData(allUserData);  // Display all data if already loaded
         }
     });
+
+    function fetchUserAccess() {
+        let userID = <?php echo isset($_SESSION['userID']) ? $_SESSION['userID'] : 0; ?>;
+        console.log('Fetching user access for user ID:', userID);
+        fetch('CRMUsers.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=fetch_user_access&userID=${userID}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data || data.error || data.userID != userID || data.CRMAccess != 1) {
+                alert('You do not have access to view this page.');
+                window.location.href = 'homepage.html';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching user data:', error);
+            alert('Error fetching user data. You do not have access to view this page.');
+            window.location.href = 'homepage.html';
+        });
+    }
 
     function fetchData() {
         fetch('CRMUsers.php', {
@@ -176,7 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
         displayData(filteredData);
     }
-
+    fetchUserAccess();
 </script>
 </body>
 </html>
