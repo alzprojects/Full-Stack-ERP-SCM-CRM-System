@@ -15,38 +15,6 @@ function toggleDarkMode() {
     darkModeButton.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
 }
 
-// Function to toggle colorblind mode
-function toggleColorBlindMode() {
-    const isColorBlindMode = localStorage.getItem('colorBlindMode') !== 'true';
-    localStorage.setItem('colorBlindMode', isColorBlindMode);
-    document.body.classList.toggle('colorblind-mode', isColorBlindMode);
-
-    // Example: Change button text based on mode
-    const colorBlindModeButton = document.querySelector('.colorblind-mode-button');
-    colorBlindModeButton.textContent = isColorBlindMode ? 'Colorblind Mode' : 'Normal Mode';
-
-    // Adjust colors for improved readability in colorblind mode
-    const elements = document.querySelectorAll('.colorblind-adjust');
-    elements.forEach(element => {
-        if (isColorBlindMode) {
-            // Set colors suitable for colorblind users
-            // For example, switch non-black or non-white colors to grey
-            const computedStyle = window.getComputedStyle(element);
-            const backgroundColor = computedStyle.getPropertyValue('background-color');
-            const textColor = computedStyle.getPropertyValue('color');
-            if (backgroundColor !== 'rgb(0, 0, 0)' && backgroundColor !== 'rgb(255, 255, 255)') {
-                element.style.backgroundColor = 'grey';
-            }
-            if (textColor !== 'rgb(0, 0, 0)' && textColor !== 'rgb(255, 255, 255)') {
-                element.style.color = 'grey';
-            }
-        } else {
-            // Revert to default colors
-            element.style.color = ''; // Revert text color
-            element.style.backgroundColor = ''; // Revert background color
-        }
-    });
-}
 
 // Function to change font size
 function changeFontSize(size) {
@@ -102,12 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isDarkMode = localStorage.getItem('darkMode') === 'true';
     setDarkMode(isDarkMode);
-
-    const isColorBlindMode = localStorage.getItem('colorBlindMode') === 'true';
-    document.body.classList.toggle('colorblind-mode', isColorBlindMode);
-
-    const colorBlindModeButton = document.querySelector('.colorblind-mode-button');
-    colorBlindModeButton.textContent = isColorBlindMode ? 'Colorblind Mode' : 'Normal Mode';
 
     // Load font size from local storage and apply it
     loadFontSize();
