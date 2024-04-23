@@ -30,8 +30,16 @@ function toggleColorBlindMode() {
     elements.forEach(element => {
         if (isColorBlindMode) {
             // Set colors suitable for colorblind users
-            element.style.color = '#000'; // Black text
-            element.style.backgroundColor = '#fff'; // White background
+            // For example, switch non-black or non-white colors to grey
+            const computedStyle = window.getComputedStyle(element);
+            const backgroundColor = computedStyle.getPropertyValue('background-color');
+            const textColor = computedStyle.getPropertyValue('color');
+            if (backgroundColor !== 'rgb(0, 0, 0)' && backgroundColor !== 'rgb(255, 255, 255)') {
+                element.style.backgroundColor = 'grey';
+            }
+            if (textColor !== 'rgb(0, 0, 0)' && textColor !== 'rgb(255, 255, 255)') {
+                element.style.color = 'grey';
+            }
         } else {
             // Revert to default colors
             element.style.color = ''; // Revert text color
@@ -39,6 +47,49 @@ function toggleColorBlindMode() {
         }
     });
 }
+
+// Function to change font size
+function changeFontSize(size) {
+    // Store the selected font size in local storage
+    localStorage.setItem('fontSize', size);
+
+    // Apply the font size to the body and all relevant elements
+    document.body.style.fontSize = size;
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(button => {
+        button.style.fontSize = size;
+    });
+
+    // Load the font size from local storage and apply it to other pages
+    loadFontSize();
+}
+
+// Function to load font size from local storage and apply it
+function loadFontSize() {
+    const savedFontSize = localStorage.getItem('fontSize');
+    if (savedFontSize) {
+        // Apply the saved font size to the body and all relevant elements
+        document.body.style.fontSize = savedFontSize;
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(button => {
+            button.style.fontSize = savedFontSize;
+        });
+    }
+}
+
+// Function to set font size preference
+function setFontSize(size) {
+    localStorage.setItem('fontSize', size);
+    document.body.style.fontSize = size;
+}
+
+// Check for user's preferred font size on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedFontSize = localStorage.getItem('fontSize');
+    if (savedFontSize) {
+        setFontSize(savedFontSize);
+    }
+});
 
 // Check for user's preference on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -57,4 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const colorBlindModeButton = document.querySelector('.colorblind-mode-button');
     colorBlindModeButton.textContent = isColorBlindMode ? 'Colorblind Mode' : 'Normal Mode';
+
+    // Load font size from local storage and apply it
+    loadFontSize();
 });
