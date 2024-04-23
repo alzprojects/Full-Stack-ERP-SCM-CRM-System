@@ -2,7 +2,7 @@
 function setDarkMode(isDarkMode) {
     localStorage.setItem('darkMode', isDarkMode);
     document.body.classList.toggle('dark-mode', isDarkMode);
-    document.body.classList.toggle('light-mode', !isDarkMode); // Toggle light mode
+    document.body.classList.toggle('light-mode', !isDarkMode);
 }
 
 // Function to toggle dark mode
@@ -10,11 +10,17 @@ function toggleDarkMode() {
     const isDarkMode = localStorage.getItem('darkMode') !== 'true';
     setDarkMode(isDarkMode);
 
+    // Change text color of all buttons with class 'btn' based on mode
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(button => {
+        button.style.color = isDarkMode ? 'white' : 'black';
+    });
+
     // Example: Change button text based on mode
     const darkModeButton = document.querySelector('.dark-mode-button');
     darkModeButton.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+    darkModeButton.style.color = isDarkMode ? 'white' : 'black'; // Update text color
 }
-
 
 // Function to change font size
 function changeFontSize(size) {
@@ -63,9 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('darkMode') === null) {
         localStorage.setItem('darkMode', false); // Default to light mode
-    }
-    if (localStorage.getItem('colorBlindMode') === null) {
-        localStorage.setItem('colorBlindMode', false); // Default to normal mode
     }
 
     const isDarkMode = localStorage.getItem('darkMode') === 'true';
