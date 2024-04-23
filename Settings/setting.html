@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="SCM_Style.css">
+    
+    <script src="dark-light-mode.js"></script>
+
+    <style>
+        /* Add your CSS styles here */
+        /* Dark mode */
+        .dark-mode {
+            background-color: black; /* Change background color for dark mode */
+            color: white; /* Change text color for dark mode */
+        }
+
+        .dark-mode .container {
+            background-color: black; /* Change container background color for dark mode */
+        }
+
+        .dark-mode .navbar {
+            background-color: #333; /* Change navbar background color for dark mode */
+        }
+
+        .dark-mode .navbar a,
+        .dark-mode .btn {
+            color: white; /* Change text color for dark mode */
+        }
+
+        /* Light mode */
+        body.light-mode {
+            background-color: white; /* Change background color for light mode */
+            color: black; /* Change text color for light mode */
+        }
+
+        body.light-mode .container {
+            background-color: white; /* Change container background color for light mode */
+        }
+
+        body.light-mode .navbar {
+            background-color: #f2f2f2; /* Change navbar background color for light mode */
+        }
+
+        body.light-mode .navbar a,
+        body.light-mode .btn {
+            color: black; /* Change text color for light mode */
+        }
+
+        /* Container styles */
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Navbar styles */
+        .navbar {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .navbar a {
+            margin-right: 10px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        /* Button styles */
+        .btn {
+            background-color: transparent;
+            border: 1px solid #333;
+            padding: 10px 20px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .btn:hover {
+            background-color: #333;
+            color: white;
+        }
+
+    </style>
+
+    <script>
+        // JavaScript functions here...
+        function btn_logout_onclick() {
+            // Your logout logic here...
+        }
+    </script>
+    
+</head>
+<body>
+    <div class="container">
+        <h2>Settings</h2>
+        <div class="navbar">
+            <a href="ERP_Finances.php">Home</a>
+            <a href="SCM.HTML">SCM</a>
+            <a href="ERP_Finances.php">ERP</a>
+            <a href="CRM.HTML">CRM</a>
+            <a href="login.html">Login</a>
+            <a href="setting.html">Settings</a>
+        </div>
+        <button onclick="toggleDarkMode()" class="btn dark-mode-button">
+            Light Mode
+        </button> 
+        <br>
+        <button onclick="toggleColorBlindMode()" class="btn colorblind-mode-button">Colorblind Mode</button>
+        <br>
+        <br>
+        <button class="btn btn-danger" onclick="return btn_logout_onclick();">Logout</button>
+        <br>
+        <br>
+        <a href="javascript:void(0);" onclick="history.back()" class="btn">Back</a>
+ 
+    </div>
+
+</body>
+</html>

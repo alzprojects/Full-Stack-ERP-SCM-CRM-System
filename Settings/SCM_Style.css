@@ -1,0 +1,244 @@
+/* Common styles for both modes */
+body {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    color: white;
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    margin-right: 10px;
+}
+
+.container {
+    width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    margin: 20px;
+    padding: 0;
+    font-size: 32px;
+}
+
+h3 {
+    margin: 20px;
+    padding: 0;
+    font-size: 30px;
+}
+
+h4 {
+    margin: 20px;
+    padding: 0;
+    font-size: 24px;
+}
+
+button {
+    border: none;
+    padding: 15px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 30px;
+    margin: 7px 5px;
+    cursor: pointer;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+input[type="file"],
+button {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: white;
+}
+
+canvas {
+    margin-bottom: 20px;
+    max-width: 600px;
+    max-height: 500px;
+    margin: 0 auto;
+}
+
+#smallContainer {
+    display: flex;
+    flex-direction: row;
+    margin: 5px;
+    border: 1px solid white;
+}
+
+#leftContainer {
+    max-height: 1200px;
+    min-width: 600px;
+    flex-grow: 1;
+    flex-basis: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+#rightContainer {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    border: 1px solid white;
+}
+
+#topRightContainer,
+#bottomRightContainer {
+    flex-grow: 1;
+    border: 1px solid rgb(255, 255, 255);
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    font-size: 10px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+table,
+th,
+td {
+    border: 1px solid white;
+    font-size: 12px;
+}
+
+th,
+td {
+    padding: 8px;
+    text-align: left;
+}
+
+/* Update table border color to black in light mode */
+body.light-mode table,
+body.light-mode th,
+body.light-mode td {
+    border: 1px solid black;
+}
+
+#searchForm {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+#searchForm label,
+#searchForm input[type="text"],
+#searchForm input[type="date"],
+#searchForm input[type="submit"] {
+    color: white;
+}
+
+#searchForm input[type="text"],
+#searchForm input[type="date"],
+#searchForm input[type="submit"] {
+    border: none;
+    padding: 8px;
+    border-radius: 3px;
+    margin-bottom: 5px;
+}
+
+#searchForm input[type="submit"] {
+    cursor: pointer;
+}
+
+/* Scrollbar styling */
+/* For WebKit-based browsers (Chrome, Safari) */
+#leftContainer::-webkit-scrollbar,
+#topRightContainer::-webkit-scrollbar {
+    width: 12px;
+}
+
+#leftContainer::-webkit-scrollbar-track,
+#topRightContainer::-webkit-scrollbar-track {
+    background-color: rgba(255, 255, 255, 0.832);
+}
+
+#leftContainer::-webkit-scrollbar-thumb,
+#topRightContainer::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+}
+
+/* Navbar styles */
+.navbar {
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #333; /* Remembered navbar background color */
+}
+
+.navbar a {
+    margin-right: 10px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    color: white; /* Remembered navbar text color */
+}
+
+/* Button styles */
+.btn {
+    background-color: transparent;
+    border: 1px solid #333;
+    padding: 10px 20px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 5px;
+    outline: none;
+    color: white; /* Remembered button text color */
+}
+
+.btn:hover {
+    background-color: #333;
+    color: white;
+}
+
+/* Dark mode */
+body.dark-mode {
+    background-color: #111;
+    color: white;
+}
+
+.container.dark-mode {
+    background-color: #222;
+}
+
+.navbar.dark-mode {
+    background-color: #666;
+}
+
+.navbar.dark-mode a,
+.button-container.dark-mode button {
+    color: white;
+}
+
+/* Light mode */
+body.light-mode {
+    background-color: white;
+    color: black;
+}
+
+.container.light-mode {
+    background-color: #f2f2f2;
+}
+
+.navbar.light-mode {
+    background-color: #ccc;
+}
+
+.navbar.light-mode a,
+.button-container.light-mode button {
+    color: black;
+}
