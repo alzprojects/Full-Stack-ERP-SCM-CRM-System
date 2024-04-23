@@ -55,6 +55,7 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             transition: background-color 0.3s ease;
+            position: relative; /* Add relative positioning */
         }
 
         /* Navbar styles */
@@ -88,43 +89,71 @@
             color: white;
         }
 
+        /* Time display */
+        #current-time {
+            position: absolute; /* Use absolute positioning */
+            bottom: 10px;
+            right: 10px;
+            font-size: 14px;
+            color: #666;
+        }
     </style>
 
    
     
 </head>
 <body>
-    <div class="container">
-        <h2>Settings</h2>
-        <div class="navbar">
-            <a href="ERP_Finances.php">Home</a>
-            <a href="SCM.HTML">SCM</a>
-            <a href="ERP_Finances.php">ERP</a>
-            <a href="CRM.HTML">CRM</a>
-            <a href="login.html">Login</a>
-            <a href="setting.html">Settings</a>
+    <div class="container-wrapper"> <!-- Container to wrap the main container and the timer -->
+        <div class="container">
+            <h2>Settings</h2>
+            <div class="navbar">
+                <a href="ERP_Finances.php">Home</a>
+                <a href="SCM.HTML">SCM</a>
+                <a href="ERP_Finances.php">ERP</a>
+                <a href="CRM.HTML">CRM</a>
+                <a href="login.html">Login</a>
+                <a href="setting.html">Settings</a>
+            </div>
+            <h3>Appearance Setting</h3>
+            <button onclick="toggleDarkMode()" class="btn dark-mode-button">
+                Light Mode
+            </button> 
+            <button onclick="toggleColorBlindMode()" class="btn colorblind-mode-button">Colorblind Mode</button>
+            <br>
+            <h3>Font Size Settings</h3>
+            <button onclick="changeFontSize('small')" class="btn">Small</button>
+            <button onclick="changeFontSize('large')" class="btn">Normal</button>
+            <button onclick="changeFontSize('x-large')" class="btn">Large</button>
+            <br>
+            <br>
+            <button class="btn btn-danger" onclick="return btn_logout_onclick();">Logout</button>
+            <br>
+            <br>
+            <a href="javascript:void(0);" onclick="history.back()" class="btn">Back</a>
+            <br>
+            <br>
+            <!-- Font Size Settings -->
+        
         </div>
-        <h3>Appearance Setting</h3>
-        <button onclick="toggleDarkMode()" class="btn dark-mode-button">
-            Light Mode
-        </button> 
-        <button onclick="toggleColorBlindMode()" class="btn colorblind-mode-button">Colorblind Mode</button>
-        <br>
-        <h3>Font Size Settings</h3>
-        <button onclick="changeFontSize('small')" class="btn">Small</button>
-        <button onclick="changeFontSize('large')" class="btn">Normal</button>
-        <button onclick="changeFontSize('x-large')" class="btn">Large</button>
-        <br>
-        <br>
-        <button class="btn btn-danger" onclick="return btn_logout_onclick();">Logout</button>
-        <br>
-        <br>
-        <a href="javascript:void(0);" onclick="history.back()" class="btn">Back</a>
-        <br>
-        <br>
-        <!-- Font Size Settings -->
-    
+
+        <!-- Time display -->
+        <div id="current-time"></div>
     </div>
+
+    <script>
+        // Function to update current time
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // Update time initially and then every second
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
 
 </body>
 <footer>
