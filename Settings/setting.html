@@ -90,12 +90,7 @@
 
     </style>
 
-    <script>
-        // JavaScript functions here...
-        function btn_logout_onclick() {
-            // Your logout logic here...
-        }
-    </script>
+   
     
 </head>
 <body>
@@ -109,19 +104,31 @@
             <a href="login.html">Login</a>
             <a href="setting.html">Settings</a>
         </div>
+        <h3>Appearance Setting</h3>
         <button onclick="toggleDarkMode()" class="btn dark-mode-button">
             Light Mode
         </button> 
-        <br>
         <button onclick="toggleColorBlindMode()" class="btn colorblind-mode-button">Colorblind Mode</button>
+        <br>
+        <h3>Font Size Settings</h3>
+        <button onclick="changeFontSize('small')" class="btn">Small</button>
+        <button onclick="changeFontSize('large')" class="btn">Normal</button>
+        <button onclick="changeFontSize('x-large')" class="btn">Large</button>
         <br>
         <br>
         <button class="btn btn-danger" onclick="return btn_logout_onclick();">Logout</button>
         <br>
         <br>
         <a href="javascript:void(0);" onclick="history.back()" class="btn">Back</a>
- 
+        <br>
+        <br>
+        <!-- Font Size Settings -->
+    
     </div>
 
 </body>
+<footer>
+    <p style="text-align: center;">© Copyright <a href="/">IE Group332</a></p>
+
+</footer>
 </html>
