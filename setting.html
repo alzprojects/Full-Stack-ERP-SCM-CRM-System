@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="SCM_Style.css">
+    
+    <script src="dark-light-mode.js"></script>
+
+    <style>
+        /* Add your CSS styles here */
+        /* Dark mode */
+        .dark-mode {
+            background-color: black; /* Change background color for dark mode */
+            color: white; /* Change text color for dark mode */
+        }
+
+        .dark-mode .container {
+            background-color: black; /* Change container background color for dark mode */
+        }
+
+        .dark-mode .navbar {
+            background-color: #333; /* Change navbar background color for dark mode */
+        }
+
+        .dark-mode .navbar a,
+        .dark-mode .btn {
+            color: white; /* Change text color for dark mode */
+        }
+
+        /* Light mode */
+        body.light-mode {
+            background-color: white; /* Change background color for light mode */
+            color: black; /* Change text color for light mode */
+        }
+
+        body.light-mode .container {
+            background-color: white; /* Change container background color for light mode */
+        }
+
+        body.light-mode .navbar {
+            background-color: #f2f2f2; /* Change navbar background color for light mode */
+        }
+
+        body.light-mode .navbar a,
+        body.light-mode .btn {
+            color: black; /* Change text color for light mode */
+        }
+
+        /* Container styles */
+        .container {
+            max-height: 700px;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Navbar styles */
+        .navbar {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .navbar a {
+            margin-right: 10px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        /* Button styles */
+        .btn {
+            background-color: transparent;
+            border: 1px solid #333;
+            padding: 10px 20px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .btn:hover {
+            background-color: #333;
+            color: white;
+        }
+
+        /* Centered contact link */
+        .centered-link {
+            text-align: center;
+        }
+
+    </style>
+
+    <script>
+        function btn_logout_onclick() {
+            document.cookie = "userID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "login.php";
+        }
+    </script>
+    
+</head>
+<body>
+    <div class="container">
+        <h2>Settings</h2>
+        <div class="navbar">
+            <a id="homeLink" href="homepage.php">Home</a>
+            <a id="loginLink" href="login.php">Login</a>
+            <a id="settingsLink" href="setting.html">Settings</a>
+        </div>
+        <button onclick="toggleDarkMode()" class="btn dark-mode-button">
+            Light Mode
+        </button> 
+        <br>
+        <h3>Font Size Settings</h3>
+        <button onclick="changeFontSize('small')" class="btn">Small</button>
+        <button onclick="changeFontSize('large')" class="btn">Normal</button>
+        <button onclick="changeFontSize('x-large')" class="btn">Large</button>
+        <br>
+        <br>
+        <button class="btn btn-danger" onclick="return btn_logout_onclick();">Logout</button>
+        <br>
+        <br>
+        <a href="javascript:void(0);" onclick="history.back()" class="btn">Back</a>
+        <br>
+        <br>
+ 
+    </div>
+
+    <script>
+        function getUrlParameter(name) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(?:=([^&#]*)|&|#|$)');
+            var results = regex.exec(window.location.href);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+    
+        // Get userID and locationID from cookies
+        var userID = getUrlParameter('userID');
+        var locationID = getUrlParameter('locationID');
+    
+        // Update links with userID and locationID if cookies exist
+        if (userID && locationID) {
+        // Array of link IDs to update
+        var linkIDs = ["homeLink", "loginLink", "settingsLink"];
+    
+        // Iterate over each link ID
+        linkIDs.forEach(function(linkID) {
+            var link = document.getElementById(linkID);
+            var href = link.getAttribute('href');
+    
+            // Check if the href already contains parameters
+            if (href.includes('?')) {
+                link.setAttribute('href', href + '&userID=' + userID + '&locationID=' + locationID);
+            } else {
+                link.setAttribute('href', href + '?userID=' + userID + '&locationID=' + locationID);
+            }
+        });
+    }
+    </script>
+</body>
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h4>About Us</h4>
+                <p>We are a group of Industrial Engineering Students studying at Purdue University.</p>
+                <a href="about.html">Learn more</a>           
+            </div>
+            <div class="col-md-6">
+                <h4>Contact Information</h4>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-map-marker-alt"></i> 610 Purdue Mall, West Lafayette, IN 47907</li>
+                    <li><i class="fas fa-phone"></i> +1 (765)494-4600</li>
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:IE332Group11@purdue.edu">Contact Us</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <hr>
+                <p>&copy; Copyright <a href="/">IE 332 Group 11</a></p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+</html>
