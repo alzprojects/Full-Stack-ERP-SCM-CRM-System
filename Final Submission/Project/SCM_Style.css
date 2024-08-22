@@ -1,0 +1,243 @@
+body {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; /* Change the font family */
+    background-color: black; /* Change the background color */
+    margin: 0;
+    padding: 0;
+    font-size: 16px; /* Change the font size */
+    color: white; /* Change the font color */
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    margin-right: 10px;
+}
+
+.container {
+    width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: rgba(14, 10, 87, 0.341);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: black;
+    margin: 20px;
+    padding: 0;
+    font-size: 32px; /* Change the font size */
+    color: rgb(50, 224, 224); /* Change the font color */
+}
+
+h3 {
+    color: black;
+    margin: 20px;
+    padding: 0;
+    font-size: 30px; /* Change the font size */
+    color: white; /* Change the font color */
+}
+
+h4 {
+    color: black;
+    margin: 20px;
+    padding: 0;
+    font-size: 24px; /* Change the font size */
+    color: white; /* Change the font color */
+}
+
+button {
+    background-color: rgb(50, 224, 224); /* Change the background color */
+    color: black; /* Change the text color */
+    border: none; /* Remove the border */
+    padding: 15px 25px; /* Add some padding */
+    text-align: center; /* Center the text */
+    text-decoration: none; /* Remove the underline */
+    display: inline-block;
+    font-size: 30px; /* Change the font size */
+    margin: 7px 5px;
+    cursor: pointer; /* Change the cursor when you hover over the button */
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+input[type="file"],
+button {
+    margin-bottom: 10px;
+    font-size: 14px; /* Change the font size */
+    color: white; /* Change the font color */
+}
+
+canvas {
+    margin-bottom: 20px;
+    max-width: 600px; /* Set maximum width */
+    max-height: 500px;
+    margin: 0 auto; /* Center the canvas */
+}
+
+.navbar {
+    overflow: hidden;
+    background-color: #dddddd5d; /* Change the background color */
+    width: 100%; /* Set navbar width to 100% */
+}
+
+.navbar a, .navbar .dropdown .dropbtn {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 18px 20px;
+    text-decoration: none;
+    width: 20%; /* Set each navbar item to occupy 20% of the navbar */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    font-size: 16px; /* Change the font size */
+}
+
+/* Change the color of links on hover */
+.navbar a:hover, .navbar .dropdown .dropbtn:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+#smallContainer {
+    display: flex;
+    flex-direction: row;
+    margin: 5px; /* Add margin to smallContainer */
+    border: 1px solid white;
+
+}
+
+#leftContainer {
+    max-height: 1200px;
+    min-width: 600px;
+    flex-grow: 1; /* Adjust flex-grow value */
+    flex-basis: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+#rightContainer {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    border: 1px solid white;
+
+}
+#topRightContainer, #bottomRightContainer {
+    flex-grow: 1;
+    border: 1px solid rgb(255, 255, 255);
+    overflow-x: auto;
+    overflow-y: auto;
+
+}
+
+table {
+    width: 100%;
+    font-size: 10px;
+    table-layout: fixed;
+    border-collapse: collapse;
+    color: white; /* Change the font color */
+    border-color: white; /* Change the border color */
+}
+
+table, th, td {
+    border: 1px solid white; /* Change the border color */
+    font-size: 12px; /* Change the font size */
+    color: white; /* Change the font color */
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+#searchForm {
+    background-color: rgba(255, 255, 255, 0.2); /* Dark mode background color */
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+#searchForm label,
+#searchForm input[type="text"],
+#searchForm input[type="date"],
+#searchForm input[type="submit"] {
+    color: white; /* Text color */
+}
+
+#searchForm input[type="text"],
+#searchForm input[type="date"],
+#searchForm input[type="submit"] {
+    background-color: rgba(0, 0, 0, 0.5); /* Dark mode background color for inputs and button */
+    border: none;
+    padding: 8px;
+    border-radius: 3px;
+    margin-bottom: 5px;
+}
+
+canvas {
+    width: 250px !important;
+}
+
+
+#searchForm input[type="submit"] {
+    cursor: pointer;
+}
+
+/* Scrollbar styling */
+/* For WebKit-based browsers (Chrome, Safari) */
+#leftContainer::-webkit-scrollbar, #topRightContainer::-webkit-scrollbar {
+    width: 12px; /* Width of the scrollbar */
+}
+
+#leftContainer::-webkit-scrollbar-track, #topRightContainer::-webkit-scrollbar-track {
+    background-color: rgba(255, 255, 255, 0.832); /* Color of the scrollbar track */
+}
+
+#leftContainer::-webkit-scrollbar-thumb, #topRightContainer::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5); /* Color of the scrollbar thumb */
+    border-radius: 6px; /* Roundness of the thumb */
+}
+
+.loginContainer {
+    width: 400px; /* Set the width of the login container */
+    padding: 20px; /* Padding around the content inside the container */
+    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
+    border-radius: 10px; /* Rounded corners for the container */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Shadow for 3D effect */
+    margin: 50px auto; /* Center the container on the page vertically and horizontally */
+    display: flex; /* Use flexbox for internal layout */
+    flex-direction: column; /* Stack children elements vertically */
+    align-items: center; /* Center-align the child elements */
+    justify-content: center; /* Center content vertically in the container */
+}
+
+.loginContainer input[type="text"],
+.loginContainer input[type="password"] {
+    width: 90%; /* Width of the input fields to fit container */
+    padding: 10px; /* Padding inside the input fields for better readability */
+    margin-top: 10px; /* Margin top for spacing between input fields */
+    background-color: rgba(0, 0, 0, 0.5); /* Background color for inputs */
+    border: 1px solid #ccc; /* Border color */
+    border-radius: 5px; /* Rounded corners for the inputs */
+    color: white; /* Text color inside the inputs */
+    font-size: 16px; /* Font size for readability */
+}
+
+.loginContainer button {
+    width: 95%; /* Button width to fit inside the container */
+    padding: 15px; /* Padding for button height */
+    margin-top: 20px; /* Space above the button */
+    background-color: rgb(50, 224, 224); /* Background color as defined in global button styles */
+    color: black; /* Text color */
+    font-size: 18px; /* Slightly larger font size for visibility */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.loginContainer button:hover {
+    background-color: rgb(25, 202, 202); /* Change background color on hover */
+}

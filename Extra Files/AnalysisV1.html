@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <h2>Data Analysis Calculator</h2>
+        <p>Please choose the data file you would like to analyze.</p>
+        <input type="file" id="csv-file" accept=".csv">
+        <p>Please choose whether you want a line chart, bar chart, or pie chart.</p>
+        <button onclick="selectChartType('line')">Line Chart</button>
+        <button onclick="selectChartType('bar')">Bar Chart</button>
+        <button onclick="selectChartType('pie')">Pie Chart</button>
+        <p>Please choose your column and generate the data analysis and charts.</p>
+        <button onclick="selectColumn()">Select Column</button>
+        <br></br>
+        <div id="statistics">    </div>
+        <br></br>
+        <canvas id="lineChartCanvas" width="50" height="50"></canvas>
+        <canvas id="barChartCanvas" width="50" height="50"></canvas>
+        <canvas id="pieChartCanvas" width="50" height="50"></canvas>
+    </div>
+</body>
+</html>

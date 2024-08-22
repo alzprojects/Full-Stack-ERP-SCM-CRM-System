@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micromanagement Central Yeehaw</title>
+    <link rel="stylesheet" href="SCM_Style.css"> <!-- Link to the external CSS file -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Micromanagement Central Yeehaw</h2>
+        <div class="navbar">
+            <a href="homePage.html">Home</a>
+            <a href="login.html">Login</a>
+            <a href="SCMOrders.html">Orders</a>
+            <a href="SCMInventory.html">Inventory</a>
+        </div>
+        <h2>SCM- Orders</h2>
+        <form id="searchForm">
+            <label for="search_terms">Enter Order IDs (comma-separated):<br>Enter "0" to view all orders.</label><br>
+            <input type="text" id="search_terms" name="search_terms"><br>
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date">
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date"><br>
+            <input type="submit" value="Search">
+        </form>
+        <div id="smallContainer">
+            <div id="leftContainer" style="flex-grow: 1;">
+                <h3>Data</h3>
+                <div id="table">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Order Date</th>
+                                <th>Delivery Date</th>
+                                <th>Order Cost</th>
+                                <th>Supplier ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be dynamically populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="rightContainer" style="flex-grow: 1;">
+                <h3>Plots & Figures</h3>
+                <div style="text-align: center;">Orders per Supplier</div>
+                <canvas id="supplier"></canvas>
+                <div style="text-align: center;">Orders by Date</div>
+                <canvas id="ordersByDate"></canvas>
+                <div style="text-align: center;">Orders by Day of Week</div>
+                <canvas id="ordersByDayOfWeek"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="SCMOrders.js"></script>
+</body>
+</html>
